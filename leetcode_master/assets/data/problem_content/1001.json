@@ -1,0 +1,32 @@
+{
+  "problem_id": 1001,
+  "approaches": [
+    {
+      "name": "Brute Force",
+      "time": "O(n^2)",
+      "space": "O(1)",
+      "explanation": "Check every pair of numbers to see if they sum to the target.",
+      "code": "def two_sum(nums, target)\n:\n    n = len(nums)\n    for i in range(n):\n        for j in range(i+1, n):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return [-1, -1]",
+      "pros": ["Simple to implement"],
+      "cons": ["Slow for large arrays"]
+    },
+    {
+      "name": "Hash Map",
+      "time": "O(n)",
+      "space": "O(n)",
+      "explanation": "Use a hash map to store seen numbers and their indices; for each number, check if its complement exists.",
+      "code": "def two_sum(nums, target):\n    index = {}\n    for i, x in enumerate(nums):\n        c = target - x\n        if c in index:\n            return [index[c], i]\n        index[x] = i\n    return [-1, -1]",
+      "pros": ["Linear time", "Works on unsorted input"],
+      "cons": ["Extra memory for the map"]
+    },
+    {
+      "name": "Two Pointers (Sorted)",
+      "time": "O(n)",
+      "space": "O(1) extra (after sort O(n) for mapping)",
+      "explanation": "If returning values or allowed to reorder, sort and use two pointers; mapping back to original indices adds complexity.",
+      "code": "def two_sum_sorted(nums, target):\n    arr = sorted((x, i) for i, x in enumerate(nums))\n    l, r = 0, len(arr) - 1\n    while l < r:\n        s = arr[l][0] + arr[r][0]\n        if s == target:\n            return [arr[l][1], arr[r][1]]\n        if s < target:\n            l += 1\n        else:\n            r -= 1\n    return [-1, -1]",
+      "pros": ["No hash map needed"],
+      "cons": ["Requires sorting or careful index mapping"]
+    }
+  ]
+}
