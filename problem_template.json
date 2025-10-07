@@ -1,0 +1,140 @@
+{
+  "id": 0,
+  "title": "REPLACE_WITH_PROBLEM_TITLE",
+  "difficulty": "easy|medium|hard",
+  "is_neetcode_150": false,
+  "is_blind_75": false,
+  "category_id": 0,
+  "category_name": "REPLACE_WITH_CATEGORY_NAME",
+  "optimal_solution_coding_pattern": "REPLACE_WITH_OPTIMAL_SOLUTION_CODING_PATTERN_NAME",
+  "content": {
+    "statement": "REPLACE_WITH_FULL_PROBLEM_STATEMENT",
+    "input_format": "Describe inputs with types and constraints",
+    "output_format": "Describe expected outputs and format",
+    "constraints": [
+      { "name": "n", "value": "1 <= n <= 1e5", "explanation": "Why this matters (time/space bounds)" },
+      { "name": "values", "value": "-1e9 <= a[i] <= 1e9", "explanation": "Edge ranges and overflow considerations" }
+    ],
+    "notes": ["Optional clarifications or caveats"]
+  },
+  "test_cases": [
+    {
+      "name": "Basic case1",
+      "input": { "REPLACE": "Input values as key-value pairs" },
+      "output": "REPLACE_WITH_EXPECTED_OUTPUT",
+      "explanation": "Explain why the output is correct."
+    },
+    {
+      "name": "Basic case2",
+      "input": { "REPLACE": "Input values as key-value pairs" },
+      "output": "REPLACE_WITH_EXPECTED_OUTPUT",
+      "explanation": "Explain why the output is correct."
+    },
+    {
+      "name": "Edge case1",
+      "input": { "REPLACE": "Minimal/empty/limit values" },
+      "output": "REPLACE",
+      "explanation": "Edge behavior reasoning"
+    },
+    {
+      "name": "Edge case2",
+      "input": { "REPLACE": "Minimal/empty/limit values" },
+      "output": "REPLACE",
+      "explanation": "Edge behavior reasoning"
+    }
+  ],
+  "approaches": [
+    {
+      "key": "brute_force",
+      "name": "Brute Force - {method name}",
+      "time_complexity": "O(REPLACE)",
+      "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; break down dominant loops/operations",
+      "space_complexity": "O(REPLACE)",
+      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
+      "explanation": "2-3 sentence step-by-step narrative of the approach in simple easy to understand words",
+      "pros": ["Simple to implement"],
+      "cons": ["Slow on large inputs"],
+      "implementations": {
+        "python": {
+          "code": "# REPLACE\n# def solve(...):\n#     ..."
+        },
+        "javascript": {
+          "code": "// REPLACE\n// function solve(...) {\n//   ...\n// }"
+        },
+        "java": {
+          "code": "// REPLACE\n// class Solution {\n//   public TYPE solve(...) {\n//     ...\n//   }\n// }"
+        },
+        "cpp": {
+          "code": "// REPLACE\n// TYPE solve(...) {\n//   ...\n// }"
+        }
+      }
+    },
+    {
+      "key": "optimized",
+      "name": "Optimized - {method name}",
+      "time_complexity": "O(REPLACE)",
+      "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; detail reductions vs brute force; show dominant terms",
+      "space_complexity": "O(REPLACE)",
+      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
+      "explanation": "2-3 sentence more efficient strategy and reasoning in simple easy to understand words",
+      "pros": ["Better time complexity"],
+      "cons": ["More complex to implement"],
+      "implementations": {
+        "python": { "code": "# REPLACE" },
+        "javascript": { "code": "// REPLACE" },
+        "java": { "code": "// REPLACE" },
+        "cpp": { "code": "// REPLACE" }
+      }
+    },
+    {
+      "key": "optimal",
+      "name": "Optimal - {method name}",
+      "time_complexity": "O(REPLACE)",
+      "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; detail reductions vs brute force; show dominant terms",
+      "space_complexity": "O(REPLACE)",
+      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
+      "explanation": "2-3 sentence final refined approach and correctness argument in simple easy to understand words",
+      "trick": {
+        "summary": "THE TRICK: Concise statement in easy to understand simple words, explaining the key insight or constraint that allows for the optimal solution.",
+        "details": [
+          "Point 1 explaining the constraint/insight in simple easy to understand words",
+          "Point 2 showing how it eliminates overhead or enables single pass in simple easy to understand words"
+        ]
+      },
+      "pros": ["Fastest in practice", "Optimal bounds"],
+      "cons": ["Requires recognizing key insight"],
+      "implementations": {
+        "python": { "code": "# REPLACE" },
+        "javascript": { "code": "// REPLACE" },
+        "java": { "code": "// REPLACE" },
+        "cpp": { "code": "// REPLACE" }
+      }
+    }
+  ],
+  "comparison_table": {
+    "columns": ["Approach", "Time", "Space", "Pros", "Cons"],
+    "rows": [
+      {
+        "approach": "Brute Force",
+        "time": "O(REPLACE)",
+        "space": "O(REPLACE)",
+        "pros": ["Simple to understand and code"],
+        "cons": ["Slower due to exhaustive search"]
+      },
+      {
+        "approach": "Optimized",
+        "time": "O(REPLACE)",
+        "space": "O(REPLACE)",
+        "pros": ["Linear time on average", "Handles typical constraints well"],
+        "cons": ["Extra memory or preprocessing"]
+      },
+      {
+        "approach": "Optimal",
+        "time": "O(REPLACE)",
+        "space": "O(REPLACE)",
+        "pros": ["Optimal time and space", "Single pass possible"],
+        "cons": ["Works only under specific constraints/trick"]
+      }
+    ]
+  }
+}

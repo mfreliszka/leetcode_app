@@ -1,0 +1,155 @@
+{
+  "id": 1004,
+  "title": "Valid Anagram",
+  "difficulty": "easy",
+  "is_neetcode_150": true,
+  "is_blind_75": true,
+  "category_id": 1,
+  "content": {
+    "statement": "Given two strings s and t, return true if t is an anagram of s, and false otherwise.",
+    "input_format": "Two strings s and t.",
+    "output_format": "Boolean: true if t is an anagram of s, else false.",
+    "constraints": [
+      { "name": "length", "value": "0 <= |s|, |t| <= 5e4", "explanation": "Bounds ensure linear solutions are needed; quadratic can be too slow." },
+      { "name": "alphabet", "value": "s and t consist of lowercase English letters", "explanation": "Enables 26-length fixed counter for optimal O(1) space." }
+    ],
+    "notes": ["If Unicode or mixed-case is allowed, use a hash map instead of fixed 26 array."]
+  },
+  "test_cases": [
+    {
+      "name": "Anagram basic",
+      "input": { "s": "anagram", "t": "nagaram" },
+      "output": "true",
+      "explanation": "Both strings have identical character counts."
+    },
+    {
+      "name": "Not an anagram",
+      "input": { "s": "rat", "t": "car" },
+      "output": "false",
+      "explanation": "Different character counts ('r','a','t' vs 'c','a','r')."
+    },
+    {
+      "name": "Empty strings",
+      "input": { "s": "", "t": "" },
+      "output": "true",
+      "explanation": "Empty strings are trivially anagrams."
+    },
+    {
+      "name": "Mismatched frequency",
+      "input": { "s": "aacc", "t": "ccac" },
+      "output": "false",
+      "explanation": "Counts differ (two 'a' vs one 'a')."
+    }
+  ],
+  "approaches": [
+    {
+      "key": "brute_force",
+      "name": "Sort and Compare",
+      "time_complexity": "O(n log n)",
+      "time_explanation": "Sorting both strings dominates with O(n log n) where n = |s| = |t|.",
+      "space_complexity": "O(n)",
+      "space_explanation": "Space for sorted copies or intermediate arrays/strings.",
+      "explanation": "Sort both strings and compare equality. If they match, t is an anagram of s. This is simple and reliable but not optimal.",
+      "pros": ["Very simple", "No hash structures needed"],
+      "cons": ["Slower due to sorting", "Extra memory for sorted copies"],
+      "implementations": {
+        "python": {
+          "code": "def is_anagram(s: str, t: str) -> bool:\n    return sorted(s) == sorted(t)"
+        },
+        "javascript": {
+          "code": "function isAnagram(s, t) {\n  return s.split('').sort().join('') === t.split('').sort().join('');\n}"
+        },
+        "java": {
+          "code": "import java.util.Arrays;\nclass Solution {\n  public boolean isAnagram(String s, String t) {\n    if (s.length() != t.length()) return false;\n    char[] a = s.toCharArray();\n    char[] b = t.toCharArray();\n    Arrays.sort(a);\n    Arrays.sort(b);\n    return Arrays.equals(a, b);\n  }\n}"
+        },
+        "cpp": {
+          "code": "#include <algorithm>\n#include <string>\nbool isAnagram(const std::string& s, const std::string& t) {\n  if (s.size() != t.size()) return false;\n  std::string a = s, b = t;\n  std::sort(a.begin(), a.end());\n  std::sort(b.begin(), b.end());\n  return a == b;\n}"
+        }
+      }
+    },
+    {
+      "key": "optimized",
+      "name": "Frequency Map",
+      "time_complexity": "O(n)",
+      "time_explanation": "Single pass to count characters and compare; n = |s|.",
+      "space_complexity": "O(k)",
+      "space_explanation": "k = number of distinct characters (up to n or alphabet size).",
+      "explanation": "Use a hash map (dictionary) to count characters in s and decrement for t. Finally verify all counts are zero. Works for arbitrary character sets.",
+      "pros": ["Linear time", "Handles general alphabets"],
+      "cons": ["Extra memory for map", "Slightly more code"],
+      "implementations": {
+        "python": {
+          "code": "from collections import Counter\n\ndef is_anagram(s: str, t: str) -> bool:\n    if len(s) != len(t):\n        return False\n    return Counter(s) == Counter(t)"
+        },
+        "javascript": {
+          "code": "function isAnagram(s, t) {\n  if (s.length !== t.length) return false;\n  const count = new Map();\n  for (const ch of s) count.set(ch, (count.get(ch) || 0) + 1);\n  for (const ch of t) {\n    const c = (count.get(ch) || 0) - 1;\n    if (c < 0) return false;\n    count.set(ch, c);\n  }\n  for (const v of count.values()) if (v !== 0) return false;\n  return true;\n}"
+        },
+        "java": {
+          "code": "import java.util.HashMap;\nimport java.util.Map;\nclass Solution {\n  public boolean isAnagram(String s, String t) {\n    if (s.length() != t.length()) return false;\n    Map<Character, Integer> map = new HashMap<>();\n    for (char c : s.toCharArray()) map.put(c, map.getOrDefault(c, 0) + 1);\n    for (char c : t.toCharArray()) {\n      int v = map.getOrDefault(c, 0) - 1;\n      if (v < 0) return false;\n      map.put(c, v);\n    }\n    for (int v : map.values()) if (v != 0) return false;\n    return true;\n  }\n}"
+        },
+        "cpp": {
+          "code": "#include <unordered_map>\n#include <string>\nbool isAnagram(const std::string& s, const std::string& t) {\n  if (s.size() != t.size()) return false;\n  std::unordered_map<char, int> cnt;\n  for (char c : s) ++cnt[c];\n  for (char c : t) {\n    if (--cnt[c] < 0) return false;\n  }\n  for (auto& p : cnt) if (p.second != 0) return false;\n  return true;\n}"
+        }
+      }
+    },
+    {
+      "key": "optimal",
+      "name": "Fixed 26 Counters",
+      "time_complexity": "O(n)",
+      "time_explanation": "Single pass increment/decrement over characters; n = |s|.",
+      "space_complexity": "O(1)",
+      "space_explanation": "Constant-sized array of length 26 for lowercase letters.",
+      "explanation": "Early exit if lengths differ. Maintain an integer array of size 26; increment for s, decrement for t. Finally check all zeros.",
+      "trick": {
+        "summary": "Exploit fixed lowercase alphabet to use a 26-length counter for O(1) space.",
+        "details": [
+          "Check lengths first to fail fast.",
+          "Map 'a'..'z' to indices 0..25 and adjust counts in one pass.",
+          "Final all-zero check proves equal multiset of characters."
+        ]
+      },
+      "pros": ["Optimal time and space", "Simple and fast"],
+      "cons": ["Assumes lowercase English only"],
+      "implementations": {
+        "python": {
+          "code": "def is_anagram(s: str, t: str) -> bool:\n    if len(s) != len(t):\n        return False\n    cnt = [0] * 26\n    for cs, ct in zip(s, t):\n        cnt[ord(cs) - 97] += 1\n        cnt[ord(ct) - 97] -= 1\n    return all(c == 0 for c in cnt)"
+        },
+        "javascript": {
+          "code": "function isAnagram(s, t) {\n  if (s.length !== t.length) return false;\n  const cnt = Array(26).fill(0);\n  for (let i = 0; i < s.length; i++) {\n    cnt[s.charCodeAt(i) - 97]++;\n    cnt[t.charCodeAt(i) - 97]--;\n  }\n  for (let i = 0; i < 26; i++) if (cnt[i] !== 0) return false;\n  return true;\n}"
+        },
+        "java": {
+          "code": "class Solution {\n  public boolean isAnagram(String s, String t) {\n    if (s.length() != t.length()) return false;\n    int[] cnt = new int[26];\n    for (int i = 0; i < s.length(); i++) {\n      cnt[s.charAt(i) - 'a']++;\n      cnt[t.charAt(i) - 'a']--;\n    }\n    for (int c : cnt) if (c != 0) return false;\n    return true;\n  }\n}"
+        },
+        "cpp": {
+          "code": "#include <string>\nbool isAnagram(const std::string& s, const std::string& t) {\n  if (s.size() != t.size()) return false;\n  int cnt[26] = {0};\n  for (size_t i = 0; i < s.size(); ++i) {\n    cnt[s[i] - 'a']++;\n    cnt[t[i] - 'a']--;\n  }\n  for (int i = 0; i < 26; ++i) if (cnt[i] != 0) return false;\n  return true;\n}"
+        }
+      }
+    }
+  ],
+  "comparison_table": {
+    "columns": ["Approach", "Time", "Space", "Pros", "Cons"],
+    "rows": [
+      {
+        "approach": "Sort and Compare",
+        "time": "O(n log n)",
+        "space": "O(n)",
+        "pros": ["Simple"],
+        "cons": ["Sorting overhead"]
+      },
+      {
+        "approach": "Frequency Map",
+        "time": "O(n)",
+        "space": "O(k)",
+        "pros": ["Linear time", "Works for general alphabets"],
+        "cons": ["Extra memory"]
+      },
+      {
+        "approach": "Fixed 26 Counters",
+        "time": "O(n)",
+        "space": "O(1)",
+        "pros": ["Optimal bounds"],
+        "cons": ["Assumes lowercase only"]
+      }
+    ]
+  }
+}
