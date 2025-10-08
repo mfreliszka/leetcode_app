@@ -2,11 +2,11 @@
   "id": 0,
   "title": "REPLACE_WITH_PROBLEM_TITLE",
   "difficulty": "easy|medium|hard",
+  "is_premium": false,
   "is_neetcode_150": false,
   "is_blind_75": false,
   "category_id": 0,
   "category_name": "REPLACE_WITH_CATEGORY_NAME",
-  "optimal_solution_coding_pattern": "REPLACE_WITH_OPTIMAL_SOLUTION_CODING_PATTERN_NAME",
   "content": {
     "statement": "REPLACE_WITH_FULL_PROBLEM_STATEMENT",
     "input_format": "Describe inputs with types and constraints",
@@ -47,11 +47,14 @@
     {
       "key": "brute_force",
       "name": "Brute Force - {method name}",
+      "brute_force_solution_coding_pattern": "REPLACE_WITH_BRUTE_FORCE_SOLUTION_CODING_PATTERN_NAME",
       "time_complexity": "O(REPLACE)",
       "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; break down dominant loops/operations",
+      "time_explanation_for_quiz": "Same as time_explanation",
       "space_complexity": "O(REPLACE)",
       "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
-      "explanation": "2-3 sentence step-by-step narrative of the approach in simple easy to understand words",
+      "space_explanation_for_quiz": "Same as space_explanation",
+      "explanation": "4-8 sentence step-by-step narrative of the approach in simple, easy to understand words",
       "pros": ["Simple to implement"],
       "cons": ["Slow on large inputs"],
       "implementations": {
@@ -72,11 +75,14 @@
     {
       "key": "optimized",
       "name": "Optimized - {method name}",
+      "optimized_solution_coding_pattern": "REPLACE_WITH_OPTIMIZED_SOLUTION_CODING_PATTERN_NAME",
       "time_complexity": "O(REPLACE)",
       "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; detail reductions vs brute force; show dominant terms",
+      "time_explanation_for_quiz": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; break down dominant loops/operations",
       "space_complexity": "O(REPLACE)",
-      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
-      "explanation": "2-3 sentence more efficient strategy and reasoning in simple easy to understand words",
+      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; detail optimization vs brute force if exists; track auxiliary structures",
+      "space_explanation_for_quiz": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
+      "explanation": "4-8 sentence narrative of what is wrong with brute force solution and how we can optimize brute force solution to achieve current optimized solution in simple easy to understand words.",
       "pros": ["Better time complexity"],
       "cons": ["More complex to implement"],
       "implementations": {
@@ -89,11 +95,14 @@
     {
       "key": "optimal",
       "name": "Optimal - {method name}",
+      "optimal_solution_coding_pattern": "REPLACE_WITH_OPTIMAL_SOLUTION_CODING_PATTERN_NAME",
       "time_complexity": "O(REPLACE)",
-      "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; detail reductions vs brute force; show dominant terms",
+      "time_explanation": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; detail reductions vs previous optimized solution; show dominant terms",
+      "time_explanation_for_quiz": "Explain exactly why the time complexity is O(REPLACE) in simple easy to understand words; break down dominant loops/operations",
       "space_complexity": "O(REPLACE)",
-      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
-      "explanation": "2-3 sentence final refined approach and correctness argument in simple easy to understand words",
+      "space_explanation": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; detail optimization vs previous optimized solution if exists; track auxiliary structures",
+      "space_explanation_for_quiz": "Explain exactly why the space complexity is O(REPLACE) in simple easy to understand words; track auxiliary structures",
+      "explanation": "4-8 sentence narrative of what is wrong with previous optimized solution and how we can optimize even more previous optimized solution to achieve current optimal solution in simple easy to understand words.",
       "trick": {
         "summary": "THE TRICK: Concise statement in easy to understand simple words, explaining the key insight or constraint that allows for the optimal solution.",
         "details": [

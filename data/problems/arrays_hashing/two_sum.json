@@ -1,0 +1,219 @@
+{
+  "id": 1001,
+  "title": "Two Sum",
+  "difficulty": "easy",
+  "is_premium": false,
+  "is_neetcode_150": true,
+  "is_blind_75": true,
+  "category_id": 1,
+  "category_name": "Arrays & Hashing",
+  "content": {
+    "statement": "Given an array of integers `nums` and an integer `target`, return the indices `i` and `j` such that `nums[i] + nums[j] == target` and `i != j`. You may assume that every input has exactly one pair of indices `i` and `j` that satisfy the condition. Return the answer with the smaller index first.",
+    "input_format": "An array of integers `nums` where 2 <= nums.length <= 1000, and an integer `target`.",
+    "output_format": "An array of two integers [i, j] representing the indices where nums[i] + nums[j] == target, with i < j.",
+    "constraints": [
+      { 
+        "name": "array length", 
+        "value": "2 <= nums.length <= 1000", 
+        "explanation": "Small enough for O(n²) brute force to pass, but O(n) solution is preferred" 
+      },
+      { 
+        "name": "element values", 
+        "value": "-10,000,000 <= nums[i] <= 10,000,000", 
+        "explanation": "Wide range requires handling negative numbers; no integer overflow in sum with 32-bit integers" 
+      },
+      { 
+        "name": "target value", 
+        "value": "-10,000,000 <= target <= 10,000,000", 
+        "explanation": "Target can be negative, zero, or positive" 
+      }
+    ],
+    "notes": [
+      "Exactly one solution is guaranteed to exist",
+      "Cannot use the same element twice (i != j)",
+      "Return indices, not the values themselves"
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "Basic case - middle indices",
+      "input": { 
+        "nums": [3, 4, 5, 6], 
+        "target": 7 
+      },
+      "output": "[0, 1]",
+      "explanation": "nums[0] + nums[1] = 3 + 4 = 7, which equals the target. This tests finding a pair at the beginning of the array."
+    },
+    {
+      "name": "Basic case - non-adjacent indices",
+      "input": { 
+        "nums": [4, 5, 6], 
+        "target": 10 
+      },
+      "output": "[0, 2]",
+      "explanation": "nums[0] + nums[2] = 4 + 6 = 10, which equals the target. This tests finding a pair that isn't adjacent."
+    },
+    {
+      "name": "Edge case - duplicate values",
+      "input": { 
+        "nums": [5, 5], 
+        "target": 10 
+      },
+      "output": "[0, 1]",
+      "explanation": "nums[0] + nums[1] = 5 + 5 = 10. This tests handling duplicate values where both copies are part of the solution."
+    },
+    {
+      "name": "Edge case - negative numbers",
+      "input": { 
+        "nums": [-1, -2, -3, -4, -5], 
+        "target": -8 
+      },
+      "output": "[2, 4]",
+      "explanation": "nums[2] + nums[4] = -3 + (-5) = -8. This tests handling negative numbers and verifies the solution works with all negative values."
+    }
+  ],
+  "approaches": [
+    {
+      "key": "brute_force",
+      "name": "Brute Force - Nested Loops",
+      "brute_force_solution_coding_pattern": "Nested Loops / Exhaustive Search",
+      "time_complexity": "O(n²)",
+      "time_explanation": "We use two nested loops where n is the length of the nums array. The outer loop runs n times, and for each iteration of the outer loop, the inner loop runs up to n-1 times. In the worst case (when the solution is at the end or doesn't exist until we check all pairs), we check n × (n-1) / 2 pairs, which simplifies to O(n²). For an array of 1000 elements, this means up to 500,000 comparisons.",
+      "time_explanation_for_quiz": "We use two nested loops where n is the length of the nums array. The outer loop iterates through each element (n iterations), and for each element, the inner loop checks all remaining elements (n-1, n-2, ... 1 iterations). This results in approximately n × (n-1) / 2 comparisons, which simplifies to O(n²) time complexity.",
+      "space_complexity": "O(1)",
+      "space_explanation": "We only use a constant amount of extra space for the loop variables (i and j) and no additional data structures. The space used does not grow with the input size n, making it O(1) constant space complexity. We're not creating any arrays, hash maps, or other structures that scale with input size.",
+      "space_explanation_for_quiz": "We only use two integer variables (i and j) for the loop indices and no additional data structures, regardless of the input size. This constant space usage results in O(1) space complexity.",
+      "explanation": "The brute force approach checks every possible pair of numbers in the array. We use two nested loops: the outer loop picks the first number at index i, and the inner loop picks the second number at index j (where j > i to avoid using the same element twice and to avoid duplicate pairs). For each pair, we check if nums[i] + nums[j] equals the target. As soon as we find a matching pair, we immediately return [i, j]. This approach is straightforward and guaranteed to find the solution, but it's inefficient because we're checking many unnecessary pairs. For example, with array [2,7,11,15] and target 9, we check (2,7), (2,11), (2,15), (7,11), (7,15), (11,15) even though the answer is the first pair.",
+      "pros": [
+        "Simple to understand and implement",
+        "No extra space needed beyond input",
+        "Works with any array (sorted or unsorted)"
+      ],
+      "cons": [
+        "Slow on large inputs (quadratic time)",
+        "Checks many unnecessary pairs",
+        "Not efficient for arrays near the 1000 element constraint"
+      ],
+      "implementations": {
+        "python": {
+          "code": "def twoSum(nums, target):\n    # Check every possible pair\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return []  # Should never reach here per problem guarantee"
+        },
+        "javascript": {
+          "code": "function twoSum(nums, target) {\n    // Check every possible pair\n    for (let i = 0; i < nums.length; i++) {\n        for (let j = i + 1; j < nums.length; j++) {\n            if (nums[i] + nums[j] === target) {\n                return [i, j];\n            }\n        }\n    }\n    return [];  // Should never reach here per problem guarantee\n}"
+        },
+        "java": {
+          "code": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Check every possible pair\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] + nums[j] == target) {\n                    return new int[] {i, j};\n                }\n            }\n        }\n        return new int[] {};  // Should never reach here per problem guarantee\n    }\n}"
+        },
+        "cpp": {
+          "code": "vector<int> twoSum(vector<int>& nums, int target) {\n    // Check every possible pair\n    for (int i = 0; i < nums.size(); i++) {\n        for (int j = i + 1; j < nums.size(); j++) {\n            if (nums[i] + nums[j] == target) {\n                return {i, j};\n            }\n        }\n    }\n    return {};  // Should never reach here per problem guarantee\n}"
+        }
+      }
+    },
+    {
+      "key": "optimized",
+      "name": "Optimized - Sorting with Two Pointers",
+      "optimized_solution_coding_pattern": "Two Pointers on Sorted Array",
+      "time_complexity": "O(n log n)",
+      "time_explanation": "The time complexity is dominated by the sorting step, which takes O(n log n) time where n is the length of the array. After sorting, we use two pointers (one at the start, one at the end) that move towards each other, which takes O(n) time since each pointer moves at most n positions. The total complexity is O(n log n) + O(n), but we drop the smaller term, leaving O(n log n). For an array of 1000 elements, this is approximately 10,000 operations compared to 500,000 for brute force—a significant improvement.",
+      "time_explanation_for_quiz": "Sorting the array takes O(n log n) time where n is the array length. The two-pointer traversal after sorting takes O(n) time since each pointer moves at most n positions. The sorting step dominates, so the overall time complexity is O(n log n).",
+      "space_complexity": "O(n)",
+      "space_explanation": "We need O(n) extra space to store an array of pairs that track each element's value and its original index before sorting. After sorting by values, we need to remember the original positions to return the correct indices. Some sorting algorithms also use O(log n) or O(n) space for recursion or temporary arrays, but our main space usage is the index-tracking array. Overall, this gives us O(n) space complexity.",
+      "space_explanation_for_quiz": "We create an array of n pairs to store each element's value with its original index before sorting. This requires O(n) extra space. The sorting algorithm may use additional O(log n) or O(n) space, but our main auxiliary structure is O(n), giving us O(n) overall space complexity.",
+      "explanation": "The brute force approach is inefficient because it checks every pair blindly. We can improve this by first sorting the array along with tracking original indices. Once sorted, we use two pointers—one starting at the beginning (left) and one at the end (right) of the sorted array. We calculate the sum of the elements at both pointers. If the sum equals the target, we've found our answer. If the sum is less than the target, we move the left pointer right to increase the sum. If the sum is greater than the target, we move the right pointer left to decrease the sum. This eliminates the need to check all pairs because sorting gives us a property: moving left increases sum, moving right decreases sum. However, this approach has a critical overhead: sorting takes O(n log n) time, and we must track original indices since sorting changes positions. While better than O(n²), it's not optimal for this problem.",
+      "pros": [
+        "Better than brute force for large inputs",
+        "Intuitive once array is sorted",
+        "Two-pointer technique is elegant"
+      ],
+      "cons": [
+        "Requires extra space to track original indices",
+        "Sorting overhead makes it slower than hash map approach",
+        "More complex implementation than necessary"
+      ],
+      "implementations": {
+        "python": {
+          "code": "def twoSum(nums, target):\n    # Create array of (value, original_index) pairs\n    indexed_nums = [(num, i) for i, num in enumerate(nums)]\n    # Sort by values\n    indexed_nums.sort(key=lambda x: x[0])\n    \n    left, right = 0, len(indexed_nums) - 1\n    \n    while left < right:\n        current_sum = indexed_nums[left][0] + indexed_nums[right][0]\n        \n        if current_sum == target:\n            # Return original indices, smaller index first\n            idx1, idx2 = indexed_nums[left][1], indexed_nums[right][1]\n            return [min(idx1, idx2), max(idx1, idx2)]\n        elif current_sum < target:\n            left += 1\n        else:\n            right -= 1\n    \n    return []"
+        },
+        "javascript": {
+          "code": "function twoSum(nums, target) {\n    // Create array of [value, originalIndex] pairs\n    const indexedNums = nums.map((num, i) => [num, i]);\n    // Sort by values\n    indexedNums.sort((a, b) => a[0] - b[0]);\n    \n    let left = 0, right = indexedNums.length - 1;\n    \n    while (left < right) {\n        const currentSum = indexedNums[left][0] + indexedNums[right][0];\n        \n        if (currentSum === target) {\n            // Return original indices, smaller index first\n            const idx1 = indexedNums[left][1];\n            const idx2 = indexedNums[right][1];\n            return [Math.min(idx1, idx2), Math.max(idx1, idx2)];\n        } else if (currentSum < target) {\n            left++;\n        } else {\n            right--;\n        }\n    }\n    \n    return [];\n}"
+        },
+        "java": {
+          "code": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Create array of [value, originalIndex] pairs\n        int[][] indexedNums = new int[nums.length][2];\n        for (int i = 0; i < nums.length; i++) {\n            indexedNums[i][0] = nums[i];\n            indexedNums[i][1] = i;\n        }\n        // Sort by values\n        Arrays.sort(indexedNums, (a, b) -> Integer.compare(a[0], b[0]));\n        \n        int left = 0, right = indexedNums.length - 1;\n        \n        while (left < right) {\n            int currentSum = indexedNums[left][0] + indexedNums[right][0];\n            \n            if (currentSum == target) {\n                // Return original indices, smaller index first\n                int idx1 = indexedNums[left][1];\n                int idx2 = indexedNums[right][1];\n                return new int[] {Math.min(idx1, idx2), Math.max(idx1, idx2)};\n            } else if (currentSum < target) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n        \n        return new int[] {};\n    }\n}"
+        },
+        "cpp": {
+          "code": "vector<int> twoSum(vector<int>& nums, int target) {\n    // Create vector of {value, originalIndex} pairs\n    vector<pair<int, int>> indexedNums;\n    for (int i = 0; i < nums.size(); i++) {\n        indexedNums.push_back({nums[i], i});\n    }\n    // Sort by values\n    sort(indexedNums.begin(), indexedNums.end());\n    \n    int left = 0, right = indexedNums.size() - 1;\n    \n    while (left < right) {\n        int currentSum = indexedNums[left].first + indexedNums[right].first;\n        \n        if (currentSum == target) {\n            // Return original indices, smaller index first\n            int idx1 = indexedNums[left].second;\n            int idx2 = indexedNums[right].second;\n            return {min(idx1, idx2), max(idx1, idx2)};\n        } else if (currentSum < target) {\n            left++;\n        } else {\n            right--;\n        }\n    }\n    \n    return {};\n}"
+        }
+      }
+    },
+    {
+      "key": "optimal",
+      "name": "Optimal - Hash Map",
+      "optimal_solution_coding_pattern": "Hash Map for Complement Lookup",
+      "time_complexity": "O(n)",
+      "time_explanation": "We make a single pass through the array where n is the length of nums. For each element, we perform two O(1) operations: checking if the complement exists in the hash map and inserting the current element into the hash map. Since hash map insertion and lookup are O(1) on average, and we do this n times, the total time is O(n) × O(1) = O(n). This is optimal because we must at least look at each element once to solve the problem. For an array of 1000 elements, this means approximately 1000 operations compared to 500,000 for brute force and 10,000 for sorting.",
+      "time_explanation_for_quiz": "We iterate through the array once (n iterations where n is the array length). For each element, we perform constant-time O(1) hash map operations (lookup and insertion). This gives us O(n) × O(1) = O(n) total time complexity.",
+      "space_complexity": "O(n)",
+      "space_explanation": "We use a hash map to store at most n elements where n is the length of the input array. In the worst case (when the solution is the last pair we check), we store n-1 elements in the hash map before finding the answer. Each entry in the hash map stores a number as the key and its index as the value. This gives us O(n) space complexity. We're trading space for time—using O(n) extra space allows us to achieve O(n) time instead of O(n²) with no extra space.",
+      "space_explanation_for_quiz": "We use a hash map that stores up to n elements in the worst case, where n is the input array length. Each element is stored with its index, requiring O(n) auxiliary space.",
+      "explanation": "The sorting approach improved on brute force but still has the O(n log n) sorting overhead. The key insight is that we don't actually need the array sorted—we just need fast lookups. For any number nums[i] in the array, we need to quickly check if its complement (target - nums[i]) exists elsewhere in the array. A hash map provides O(1) average-case lookup time, perfect for this need. We iterate through the array once. For each element, we first check if its complement already exists in our hash map. If it does, we've found our pair and return immediately. If not, we store the current element and its index in the hash map for future complement checks. This approach is optimal because we achieve O(n) time with just one pass through the array, and we cannot do better than O(n) since we must examine each element at least once.",
+      "trick": {
+        "summary": "THE TRICK: Instead of searching for pairs, search for complements. For each number, immediately know if (target - number) was seen before using a hash map.",
+        "details": [
+          "For each element nums[i], its complement is (target - nums[i]). If the complement exists in our hash map, we have found our pair.",
+          "Hash maps provide O(1) lookup time, eliminating the need to search through remaining elements (no nested loop) or sort the array first (no O(n log n) overhead). We build the hash map as we go, checking for complements before inserting each element."
+        ]
+      },
+      "pros": [
+        "Optimal O(n) time complexity",
+        "Single pass through the array",
+        "Simple and elegant implementation",
+        "Hash map lookups are very fast in practice"
+      ],
+      "cons": [
+        "Requires O(n) extra space for hash map",
+        "Slightly more memory than brute force",
+        "Hash map operations have small constant overhead"
+      ],
+      "implementations": {
+        "python": {
+          "code": "def twoSum(nums, target):\n    # Hash map to store {value: index}\n    seen = {}\n    \n    for i, num in enumerate(nums):\n        complement = target - num\n        \n        # Check if complement exists in our hash map\n        if complement in seen:\n            return [seen[complement], i]\n        \n        # Store current number and its index for future lookups\n        seen[num] = i\n    \n    return []"
+        },
+        "javascript": {
+          "code": "function twoSum(nums, target) {\n    // Hash map to store {value: index}\n    const seen = new Map();\n    \n    for (let i = 0; i < nums.length; i++) {\n        const complement = target - nums[i];\n        \n        // Check if complement exists in our hash map\n        if (seen.has(complement)) {\n            return [seen.get(complement), i];\n        }\n        \n        // Store current number and its index for future lookups\n        seen.set(nums[i], i);\n    }\n    \n    return [];\n}"
+        },
+        "java": {
+          "code": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Hash map to store {value: index}\n        Map<Integer, Integer> seen = new HashMap<>();\n        \n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            \n            // Check if complement exists in our hash map\n            if (seen.containsKey(complement)) {\n                return new int[] {seen.get(complement), i};\n            }\n            \n            // Store current number and its index for future lookups\n            seen.put(nums[i], i);\n        }\n        \n        return new int[] {};\n    }\n}"
+        },
+        "cpp": {
+          "code": "vector<int> twoSum(vector<int>& nums, int target) {\n    // Hash map to store {value: index}\n    unordered_map<int, int> seen;\n    \n    for (int i = 0; i < nums.size(); i++) {\n        int complement = target - nums[i];\n        \n        // Check if complement exists in our hash map\n        if (seen.find(complement) != seen.end()) {\n            return {seen[complement], i};\n        }\n        \n        // Store current number and its index for future lookups\n        seen[nums[i]] = i;\n    }\n    \n    return {};\n}"
+        }
+      }
+    }
+  ],
+  "comparison_table": {
+    "columns": ["Approach", "Time", "Space", "Pros", "Cons"],
+    "rows": [
+      {
+        "approach": "Brute Force",
+        "time": "O(n²)",
+        "space": "O(1)",
+        "pros": ["Simple to understand and code", "No extra memory needed", "Works on any array"],
+        "cons": ["Very slow on large inputs", "Checks many unnecessary pairs", "Quadratic growth is prohibitive"]
+      },
+      {
+        "approach": "Optimized (Sorting + Two Pointers)",
+        "time": "O(n log n)",
+        "space": "O(n)",
+        "pros": ["Better than brute force", "Elegant two-pointer technique", "Good for learning sorting patterns"],
+        "cons": ["Sorting overhead is unnecessary", "Extra space for index tracking", "More complex than hash map"]
+      },
+      {
+        "approach": "Optimal (Hash Map)",
+        "time": "O(n)",
+        "space": "O(n)",
+        "pros": ["Optimal linear time", "Single pass solution", "Simple implementation", "Fast in practice"],
+        "cons": ["Uses O(n) extra space", "Hash map has small constant overhead"]
+      }
+    ]
+  }
+}

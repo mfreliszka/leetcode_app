@@ -1,0 +1,228 @@
+{
+  "id": 3001,
+  "title": "Valid Parentheses",
+  "difficulty": "easy",
+  "is_premium": false,
+  "is_neetcode_150": true,
+  "is_blind_75": true,
+  "category_id": 3,
+  "category_name": "Stack",
+  "content": {
+    "statement": "You are given a string s consisting of the following characters: '(', ')', '{', '}', '[' and ']'. The input string s is valid if and only if: (1) Every open bracket is closed by the same type of close bracket. (2) Open brackets are closed in the correct order. (3) Every close bracket has a corresponding open bracket of the same type. Return true if s is a valid string, and false otherwise.",
+    "input_format": "A string s containing only the characters '(', ')', '{', '}', '[', and ']'. The length of s is between 1 and 1000 characters.",
+    "output_format": "A boolean value: true if the string is valid according to the rules, false otherwise.",
+    "constraints": [
+      { 
+        "name": "s.length", 
+        "value": "1 <= s.length <= 1000", 
+        "explanation": "String is non-empty and reasonably sized for O(n) solutions" 
+      },
+      { 
+        "name": "s[i]", 
+        "value": "s[i] ∈ {'(', ')', '{', '}', '[', ']'}", 
+        "explanation": "Only six possible bracket characters, no other characters present" 
+      }
+    ],
+    "notes": [
+      "An empty string would be considered valid (all brackets properly closed), but the constraint guarantees at least 1 character",
+      "The order matters: '([)]' is invalid even though all brackets are matched by type",
+      "A string with only opening brackets or only closing brackets is invalid"
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "Basic case - simple pair",
+      "input": { "s": "[]" },
+      "output": true,
+      "explanation": "A single pair of matching brackets of the same type. The opening bracket '[' is immediately followed by its corresponding closing bracket ']'."
+    },
+    {
+      "name": "Basic case - nested brackets",
+      "input": { "s": "([{}])" },
+      "output": true,
+      "explanation": "Multiple bracket types properly nested. Each opening bracket is closed in the correct reverse order: '(' opens first and closes last, while '{}' is the innermost pair."
+    },
+    {
+      "name": "Invalid case - wrong order",
+      "input": { "s": "[(])" },
+      "output": false,
+      "explanation": "Although all bracket types are matched, they are not closed in the correct order. The '[' opens first but we encounter ')' before ']' closes it, violating the Last-In-First-Out (LIFO) property."
+    },
+    {
+      "name": "Edge case - only opening brackets",
+      "input": { "s": "(((" },
+      "output": false,
+      "explanation": "No closing brackets present. At the end, the stack still has unclosed opening brackets, making the string invalid."
+    },
+    {
+      "name": "Edge case - only closing brackets",
+      "input": { "s": ")))" },
+      "output": false,
+      "explanation": "No opening brackets present. When we encounter the first closing bracket, the stack is empty with nothing to match against, making it invalid."
+    },
+    {
+      "name": "Edge case - mismatched types",
+      "input": { "s": "(]" },
+      "output": false,
+      "explanation": "Opening bracket '(' does not match closing bracket ']'. Even though the order is correct, the bracket types must match."
+    }
+  ],
+  "approaches": [
+    {
+      "key": "brute_force",
+      "name": "Brute Force - Repeated String Replacement",
+      "brute_force_solution_coding_pattern": "String Manipulation with Multiple Passes",
+      "time_complexity": "O(n²)",
+      "time_explanation": "In the worst case, we need to make O(n) passes through the string (where n is the length of the string), and each pass takes O(n) time to scan and potentially remove a pair. For example, with a deeply nested valid string like '(((())))' we would need to remove one pair per pass, requiring 4 passes for 8 characters. Each pass involves scanning the entire remaining string, so total operations are O(n) passes × O(n) scan per pass = O(n²).",
+      "time_explanation_for_quiz": "We make up to O(n) passes through the string, and each pass requires O(n) time to scan for matching pairs. Multiplying these together gives O(n) × O(n) = O(n²) time complexity.",
+      "space_complexity": "O(n)",
+      "space_explanation": "We need to create new strings during the replacement process. In the worst case, we allocate O(n) space for string copies or StringBuilder operations. Each iteration might create a new string of up to n characters.",
+      "space_explanation_for_quiz": "String manipulation requires creating new string objects or buffers, requiring O(n) auxiliary space for the working copy of the string.",
+      "explanation": "The brute force approach repeatedly searches for the innermost matching bracket pairs (like '()', '[]', or '{}') and removes them from the string. We continue this process until either the string becomes empty (meaning it was valid) or no more pairs can be found (meaning it's invalid). For example, with '([{}])' we would first remove '{}' to get '([])', then remove '[]' to get '()', and finally remove '()' to get an empty string. The problem with this approach is that each removal requires scanning the string again from the beginning, and we might need to do this multiple times for deeply nested brackets. This results in quadratic time complexity, making it inefficient for longer strings.",
+      "pros": [
+        "Simple to understand conceptually",
+        "Easy to implement with string replace operations"
+      ],
+      "cons": [
+        "Slow with O(n²) time complexity due to multiple passes",
+        "Inefficient string copying and manipulation"
+      ],
+      "implementations": {
+        "python": {
+          "code": "class ValidParentheses:\n    def isValid(self, s: str) -> bool:\n        # Keep removing innermost matching pairs until no more can be removed\n        while True:\n            # Store original length\n            original_length = len(s)\n            \n            # Try to remove each type of matching pair\n            s = s.replace('()', '')\n            s = s.replace('[]', '')\n            s = s.replace('{}', '')\n            \n            # If string didn't change, we can't remove any more pairs\n            if len(s) == original_length:\n                break\n        \n        # String is valid only if it's empty after all removals\n        return len(s) == 0"
+        },
+        "javascript": {
+          "code": "class ValidParentheses {\n    isValid(s) {\n        // Keep removing innermost matching pairs until no more can be removed\n        while (true) {\n            // Store original length\n            const originalLength = s.length;\n            \n            // Try to remove each type of matching pair\n            s = s.replace('()', '');\n            s = s.replace('[]', '');\n            s = s.replace('{}', '');\n            \n            // If string didn't change, we can't remove any more pairs\n            if (s.length === originalLength) {\n                break;\n            }\n        }\n        \n        // String is valid only if it's empty after all removals\n        return s.length === 0;\n    }\n}"
+        },
+        "java": {
+          "code": "class ValidParentheses {\n    public boolean isValid(String s) {\n        // Keep removing innermost matching pairs until no more can be removed\n        while (true) {\n            // Store original length\n            int originalLength = s.length();\n            \n            // Try to remove each type of matching pair\n            s = s.replace(\"()\", \"\");\n            s = s.replace(\"[]\", \"\");\n            s = s.replace(\"{}\", \"\");\n            \n            // If string didn't change, we can't remove any more pairs\n            if (s.length() == originalLength) {\n                break;\n            }\n        }\n        \n        // String is valid only if it's empty after all removals\n        return s.length() == 0;\n    }\n}"
+        },
+        "cpp": {
+          "code": "class ValidParentheses {\npublic:\n    bool isValid(string s) {\n        // Keep removing innermost matching pairs until no more can be removed\n        while (true) {\n            // Store original length\n            size_t originalLength = s.length();\n            \n            // Try to remove each type of matching pair\n            size_t pos;\n            while ((pos = s.find(\"()\")) != string::npos) s.erase(pos, 2);\n            while ((pos = s.find(\"[]\")) != string::npos) s.erase(pos, 2);\n            while ((pos = s.find(\"{}\")) != string::npos) s.erase(pos, 2);\n            \n            // If string didn't change, we can't remove any more pairs\n            if (s.length() == originalLength) {\n                break;\n            }\n        }\n        \n        // String is valid only if it's empty after all removals\n        return s.empty();\n    }\n};"
+        }
+      }
+    },
+    {
+      "key": "optimized",
+      "name": "Optimized - Stack with Explicit Mapping",
+      "optimized_solution_coding_pattern": "Stack with Hash Map",
+      "time_complexity": "O(n)",
+      "time_explanation": "The brute force solution required O(n²) time because we made multiple passes through the string. By using a stack, we eliminate the need for multiple passes. We now traverse the string exactly once, processing each character in constant O(1) time. For each of the n characters, we either push to the stack (O(1)) or pop from the stack and compare (O(1)). Therefore, the total time is O(n) × O(1) = O(n), which is a massive improvement over O(n²).",
+      "time_explanation_for_quiz": "We make a single pass through the string of length n. For each character, we perform constant-time O(1) operations (stack push, pop, or hash map lookup). This gives us O(n) × O(1) = O(n) total time complexity.",
+      "space_complexity": "O(n)",
+      "space_explanation": "We use a stack to store opening brackets and a hash map to store bracket mappings. In the worst case, when all characters are opening brackets (like '(((('), the stack will contain all n characters, requiring O(n) space. The hash map stores only 3 key-value pairs for the three bracket types, which is O(1) constant space. Therefore, total space is O(n) + O(1) = O(n).",
+      "space_explanation_for_quiz": "The stack stores opening brackets and can contain up to n elements in the worst case (all opening brackets), requiring O(n) auxiliary space. The hash map uses constant O(1) space.",
+      "explanation": "The brute force approach was inefficient because it required multiple passes through the string, repeatedly searching for pairs to remove. The key insight is recognizing that bracket matching follows a Last-In-First-Out (LIFO) pattern: the most recently opened bracket must be the next one to close. A stack data structure naturally implements this LIFO behavior. We use a hash map to store the mappings between closing brackets and their corresponding opening brackets for quick lookup. As we traverse the string once from left to right, we push each opening bracket onto the stack. When we encounter a closing bracket, we check if the stack is non-empty and whether the top of the stack matches the corresponding opening bracket. If at any point we find a mismatch or try to close a bracket when the stack is empty, we know the string is invalid. After processing all characters, the string is valid only if the stack is empty, meaning all brackets were properly closed.",
+      "pros": [
+        "Linear O(n) time with single pass",
+        "Clean and intuitive implementation",
+        "Hash map makes bracket matching explicit"
+      ],
+      "cons": [
+        "Requires extra hash map structure",
+        "Slightly more space due to hash map (though still O(1))"
+      ],
+      "implementations": {
+        "python": {
+          "code": "class ValidParentheses:\n    def isValid(self, s: str) -> bool:\n        # Map closing brackets to their corresponding opening brackets\n        bracket_map = {')': '(', ']': '[', '}': '{'}\n        stack = []\n        \n        for char in s:\n            if char in bracket_map:\n                # Closing bracket: check if it matches top of stack\n                if not stack or stack[-1] != bracket_map[char]:\n                    return False\n                stack.pop()\n            else:\n                # Opening bracket: push to stack\n                stack.append(char)\n        \n        # Valid only if all brackets are closed (stack is empty)\n        return len(stack) == 0"
+        },
+        "javascript": {
+          "code": "class ValidParentheses {\n    isValid(s) {\n        // Map closing brackets to their corresponding opening brackets\n        const bracketMap = { ')': '(', ']': '[', '}': '{' };\n        const stack = [];\n        \n        for (const char of s) {\n            if (char in bracketMap) {\n                // Closing bracket: check if it matches top of stack\n                if (stack.length === 0 || stack[stack.length - 1] !== bracketMap[char]) {\n                    return false;\n                }\n                stack.pop();\n            } else {\n                // Opening bracket: push to stack\n                stack.push(char);\n            }\n        }\n        \n        // Valid only if all brackets are closed (stack is empty)\n        return stack.length === 0;\n    }\n}"
+        },
+        "java": {
+          "code": "class ValidParentheses {\n    public boolean isValid(String s) {\n        // Map closing brackets to their corresponding opening brackets\n        Map<Character, Character> bracketMap = new HashMap<>();\n        bracketMap.put(')', '(');\n        bracketMap.put(']', '[');\n        bracketMap.put('}', '{');\n        \n        Stack<Character> stack = new Stack<>();\n        \n        for (char c : s.toCharArray()) {\n            if (bracketMap.containsKey(c)) {\n                // Closing bracket: check if it matches top of stack\n                if (stack.isEmpty() || stack.peek() != bracketMap.get(c)) {\n                    return false;\n                }\n                stack.pop();\n            } else {\n                // Opening bracket: push to stack\n                stack.push(c);\n            }\n        }\n        \n        // Valid only if all brackets are closed (stack is empty)\n        return stack.isEmpty();\n    }\n}"
+        },
+        "cpp": {
+          "code": "class ValidParentheses {\npublic:\n    bool isValid(string s) {\n        // Map closing brackets to their corresponding opening brackets\n        unordered_map<char, char> bracketMap = {\n            {')', '('},\n            {']', '['},\n            {'}', '{'}\n        };\n        \n        stack<char> st;\n        \n        for (char c : s) {\n            if (bracketMap.count(c)) {\n                // Closing bracket: check if it matches top of stack\n                if (st.empty() || st.top() != bracketMap[c]) {\n                    return false;\n                }\n                st.pop();\n            } else {\n                // Opening bracket: push to stack\n                st.push(c);\n            }\n        }\n        \n        // Valid only if all brackets are closed (stack is empty)\n        return st.empty();\n    }\n};"
+        }
+      }
+    },
+    {
+      "key": "optimal",
+      "name": "Optimal - Stack with Direct Character Comparison",
+      "optimal_solution_coding_pattern": "Stack Pattern",
+      "time_complexity": "O(n)",
+      "time_explanation": "Same as the optimized solution, we make a single pass through the string. Each character is processed in constant time O(1) with simple stack operations and character comparisons. Total time: O(n) characters × O(1) per character = O(n).",
+      "time_explanation_for_quiz": "We traverse the string once, processing n characters. Each character requires O(1) stack operations (push or pop) and O(1) character comparison. Total: O(n) × O(1) = O(n).",
+      "space_complexity": "O(n)",
+      "space_explanation": "The optimized solution used both a stack and a hash map. Here, we eliminate the hash map entirely, using only the stack for storage. The stack still requires O(n) space in the worst case when all characters are opening brackets. However, by removing the hash map, we save the O(1) constant space overhead. While both are O(n), this approach is slightly more space-efficient in practice. Total auxiliary space: O(n) for stack only.",
+      "space_explanation_for_quiz": "Only the stack is used, which contains up to n opening brackets in the worst case. This requires O(n) auxiliary space with no additional data structures needed.",
+      "explanation": "The optimized solution used a hash map to look up bracket pairs, which adds a small constant-space overhead and requires an extra lookup operation. We can eliminate this by directly comparing characters and pushing the expected closing bracket onto the stack instead of the opening bracket. When we encounter an opening bracket, we immediately push its corresponding closing bracket. Then when we see any character, we can directly check if it matches the top of the stack. This removes the need for the hash map lookup entirely. While both solutions have the same O(n) time and space complexity, this approach is cleaner because it reduces the number of data structures and makes the matching logic more direct: we simply check if the current character equals what we expect on top of the stack.",
+      "trick": {
+        "summary": "THE TRICK: Instead of storing opening brackets and using a hash map to match closing brackets, directly push the EXPECTED closing bracket onto the stack. This way, when we encounter any character, we can immediately check if it matches the top of the stack without any lookup.",
+        "details": [
+          "When we see '(', push ')' onto stack. When we see '[', push ']'. When we see '{', push '}'. This inverts the traditional approach.",
+          "Now every character we encounter should match the top of the stack (what we expect). No hash map needed - just direct comparison eliminates the lookup overhead and makes the code simpler."
+        ]
+      },
+      "pros": [
+        "Optimal O(n) time and O(n) space",
+        "No hash map needed - simpler implementation",
+        "Most concise and elegant solution"
+      ],
+      "cons": [
+        "Requires recognizing the insight to push expected closing brackets",
+        "Slightly less intuitive at first glance"
+      ],
+      "implementations": {
+        "python": {
+          "code": "class ValidParentheses:\n    def isValid(self, s: str) -> bool:\n        stack = []\n        \n        for char in s:\n            # Push expected closing bracket for each opening bracket\n            if char == '(':\n                stack.append(')')\n            elif char == '[':\n                stack.append(']')\n            elif char == '{':\n                stack.append('}')\n            # Check if current char matches expected closing bracket\n            elif not stack or stack.pop() != char:\n                return False\n        \n        # Valid only if all brackets are closed (stack is empty)\n        return len(stack) == 0"
+        },
+        "javascript": {
+          "code": "class ValidParentheses {\n    isValid(s) {\n        const stack = [];\n        \n        for (const char of s) {\n            // Push expected closing bracket for each opening bracket\n            if (char === '(') {\n                stack.push(')');\n            } else if (char === '[') {\n                stack.push(']');\n            } else if (char === '{') {\n                stack.push('}');\n            }\n            // Check if current char matches expected closing bracket\n            else if (stack.length === 0 || stack.pop() !== char) {\n                return false;\n            }\n        }\n        \n        // Valid only if all brackets are closed (stack is empty)\n        return stack.length === 0;\n    }\n}"
+        },
+        "java": {
+          "code": "class ValidParentheses {\n    public boolean isValid(String s) {\n        Stack<Character> stack = new Stack<>();\n        \n        for (char c : s.toCharArray()) {\n            // Push expected closing bracket for each opening bracket\n            if (c == '(') {\n                stack.push(')');\n            } else if (c == '[') {\n                stack.push(']');\n            } else if (c == '{') {\n                stack.push('}');\n            }\n            // Check if current char matches expected closing bracket\n            else if (stack.isEmpty() || stack.pop() != c) {\n                return false;\n            }\n        }\n        \n        // Valid only if all brackets are closed (stack is empty)\n        return stack.isEmpty();\n    }\n}"
+        },
+        "cpp": {
+          "code": "class ValidParentheses {\npublic:\n    bool isValid(string s) {\n        stack<char> st;\n        \n        for (char c : s) {\n            // Push expected closing bracket for each opening bracket\n            if (c == '(') {\n                st.push(')');\n            } else if (c == '[') {\n                st.push(']');\n            } else if (c == '{') {\n                st.push('}');\n            }\n            // Check if current char matches expected closing bracket\n            else if (st.empty() || st.top() != c) {\n                return false;\n            } else {\n                st.pop();\n            }\n        }\n        \n        // Valid only if all brackets are closed (stack is empty)\n        return st.empty();\n    }\n};"
+        }
+      }
+    }
+  ],
+  "comparison_table": {
+    "columns": ["Approach", "Time", "Space", "Pros", "Cons"],
+    "rows": [
+      {
+        "approach": "Brute Force - String Replacement",
+        "time": "O(n²)",
+        "space": "O(n)",
+        "pros": [
+          "Simple to understand",
+          "Easy to implement with built-in string methods"
+        ],
+        "cons": [
+          "Inefficient with multiple passes through string",
+          "Quadratic time complexity unacceptable for large inputs"
+        ]
+      },
+      {
+        "approach": "Optimized - Stack with HashMap",
+        "time": "O(n)",
+        "space": "O(n)",
+        "pros": [
+          "Linear time with single pass",
+          "Hash map makes bracket matching explicit and clear"
+        ],
+        "cons": [
+          "Extra hash map adds minor space overhead",
+          "Hash map lookup adds small constant factor"
+        ]
+      },
+      {
+        "approach": "Optimal - Stack with Direct Comparison",
+        "time": "O(n)",
+        "space": "O(n)",
+        "pros": [
+          "Optimal time and space complexity",
+          "No hash map needed - cleaner code",
+          "Most elegant and concise solution"
+        ],
+        "cons": [
+          "Requires insight to push expected closing brackets",
+          "Slightly less intuitive initially"
+        ]
+      }
+    ]
+  }
+}
