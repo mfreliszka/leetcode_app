@@ -1,0 +1,20 @@
+[
+  {"id": 1, "name": "Arrays & Hashing", "premium": false, "description": "Foundation for array operations and hash-based lookups."},
+  {"id": 2, "name": "Two Pointers", "premium": false, "description": "Techniques using two indices to traverse data efficiently."},
+  {"id": 3, "name": "Stack", "premium": false, "description": "LIFO data structure patterns for parsing and evaluation."},
+  {"id": 4, "name": "Binary Search", "premium": false, "description": "Divide-and-conquer search over sorted structures."},
+  {"id": 5, "name": "Sliding Window", "premium": false, "description": "Windows over sequences to compute aggregates efficiently."},
+  {"id": 6, "name": "Linked List", "premium": false, "description": "Pointer-based structures and traversal logic."},
+  {"id": 7, "name": "Trees", "premium": false, "description": "Hierarchical structures and traversal algorithms."},
+  {"id": 8, "name": "Tries", "premium": false, "description": "Prefix trees for efficient string lookup."},
+  {"id": 9, "name": "Heap/Priority Queue", "premium": false, "description": "Efficient retrieval of min/max and prioritized tasks."},
+  {"id": 10, "name": "Intervals", "premium": false, "description": "Range merging and overlap detection problems."},
+  {"id": 11, "name": "Greedy Algorithms", "premium": false, "description": "Locally optimal choices toward global optimum."},
+  {"id": 12, "name": "Backtracking", "premium": false, "description": "Systematic search with pruning and recursion."},
+  {"id": 13, "name": "Graphs", "premium": false, "description": "Nodes and edges with traversal algorithms."},
+  {"id": 14, "name": "Advanced Graphs", "premium": false, "description": "Flow, shortest paths, and advanced techniques."},
+  {"id": 15, "name": "1-D Dynamic Programming", "premium": false, "description": "DP over single dimension state."},
+  {"id": 16, "name": "2-D Dynamic Programming", "premium": false, "description": "DP over grid or matrix states."},
+  {"id": 17, "name": "Bit Manipulation", "premium": false, "description": "Operations and patterns using bits."},
+  {"id": 18, "name": "Math & Geometry", "premium": false, "description": "Geometric reasoning and numeric problem solving."}
+]

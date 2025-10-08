@@ -1,0 +1,209 @@
+{
+  "id": 7001,
+  "title": "Invert Binary Tree",
+  "difficulty": "easy",
+  "is_premium": false,
+  "is_neetcode_150": true,
+  "is_blind_75": false,
+  "category_id": 7,
+  "category_name": "Trees",
+  "content": {
+    "statement": "You are given the root of a binary tree. Invert the binary tree by swapping the left and right children of every node in the tree, and return its root. Inverting a binary tree means that for every node, its left child becomes its right child and vice versa.",
+    "input_format": "root: TreeNode - The root of a binary tree where each node contains an integer value and references to left and right children (or null if no child exists)",
+    "output_format": "TreeNode - The root of the inverted binary tree",
+    "constraints": [
+      {
+        "name": "nodes",
+        "value": "0 <= number of nodes <= 100",
+        "explanation": "Small tree size allows any approach; recursion depth won't cause stack overflow"
+      },
+      {
+        "name": "values",
+        "value": "-100 <= Node.val <= 100",
+        "explanation": "Node values don't affect the algorithm since we only swap node references"
+      }
+    ],
+    "notes": [
+      "An empty tree (root = null) should return null",
+      "A single node tree remains unchanged (but is still considered inverted)",
+      "The inversion should be done in-place when possible for optimal space usage"
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "Basic case - Complete binary tree",
+      "input": {
+        "root": "[1,2,3,4,5,6,7]"
+      },
+      "output": "[1,3,2,7,6,5,4]",
+      "explanation": "Starting from root: node 1 swaps children 2 and 3. Node 2 (now on right) swaps children 4 and 5 to become 5 and 4. Node 3 (now on left) swaps children 6 and 7 to become 7 and 6. Result: each level's nodes are reversed."
+    },
+    {
+      "name": "Basic case - Unbalanced tree",
+      "input": {
+        "root": "[3,2,1]"
+      },
+      "output": "[3,1,2]",
+      "explanation": "Node 3 has left child 2 and right child 1. After inversion, 1 becomes the left child and 2 becomes the right child."
+    },
+    {
+      "name": "Edge case - Empty tree",
+      "input": {
+        "root": "[]"
+      },
+      "output": "[]",
+      "explanation": "An empty tree (null root) remains empty after inversion. There are no nodes to swap."
+    },
+    {
+      "name": "Edge case - Single node",
+      "input": {
+        "root": "[1]"
+      },
+      "output": "[1]",
+      "explanation": "A tree with only one node has no children to swap, so it remains unchanged."
+    }
+  ],
+  "approaches": [
+    {
+      "key": "brute_force",
+      "name": "Brute Force - Create New Inverted Tree",
+      "brute_force_solution_coding_pattern": "Recursive Tree Traversal with Node Creation",
+      "time_complexity": "O(n)",
+      "time_explanation": "We visit each of the n nodes in the tree exactly once during the traversal. At each node, we perform O(1) work: creating a new node and making recursive calls. Even though we visit every node, this is unavoidable since we need to invert every node's children. Total: O(n) × O(1) = O(n)",
+      "time_explanation_for_quiz": "We visit each of the n nodes exactly once, performing constant time operations (creating a node and making recursive calls) at each node, giving us O(n) time complexity",
+      "space_complexity": "O(n + h)",
+      "space_explanation": "We use O(n) space to create n new nodes for the entire new tree structure. Additionally, the recursion call stack uses O(h) space where h is the height of the tree (h can be log(n) for balanced trees or n for skewed trees). Combined: O(n) for new tree + O(h) for call stack = O(n + h), which simplifies to O(n) since n dominates",
+      "space_explanation_for_quiz": "We allocate O(n) space for creating new nodes for the entire inverted tree, plus O(h) for the recursion stack where h is tree height. Total O(n + h) ≈ O(n)",
+      "explanation": "This approach creates an entirely new tree structure that is the inverted version of the original. We traverse the original tree recursively, and at each node, we create a new node with the same value. However, when setting the new node's children, we swap them: the new node's left child comes from recursively inverting the original node's right subtree, and vice versa. This guarantees a complete inversion but requires allocating memory for a whole new tree. While this works correctly, it's inefficient because we're duplicating the entire tree structure instead of just rearranging the existing node references.",
+      "pros": [
+        "Simple to understand conceptually",
+        "Original tree remains unchanged (non-destructive)",
+        "Easy to reason about correctness"
+      ],
+      "cons": [
+        "Uses O(n) extra space for new tree nodes",
+        "Unnecessary memory allocation when in-place swap is possible",
+        "Slower due to memory allocation overhead"
+      ],
+      "implementations": {
+        "python": {
+          "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\nclass InvertBinaryTree:\n    def invertTree(self, root: TreeNode) -> TreeNode:\n        # Base case: empty tree\n        if root is None:\n            return None\n        \n        # Create new node with same value\n        inverted = TreeNode(root.val)\n        \n        # Recursively invert subtrees and swap them\n        # New left comes from old right\n        inverted.left = self.invertTree(root.right)\n        # New right comes from old left  \n        inverted.right = self.invertTree(root.left)\n        \n        return inverted"
+        },
+        "javascript": {
+          "code": "class TreeNode {\n    constructor(val = 0, left = null, right = null) {\n        this.val = val;\n        this.left = left;\n        this.right = right;\n    }\n}\n\nclass InvertBinaryTree {\n    invertTree(root) {\n        // Base case: empty tree\n        if (root === null) {\n            return null;\n        }\n        \n        // Create new node with same value\n        const inverted = new TreeNode(root.val);\n        \n        // Recursively invert subtrees and swap them\n        // New left comes from old right\n        inverted.left = this.invertTree(root.right);\n        // New right comes from old left\n        inverted.right = this.invertTree(root.left);\n        \n        return inverted;\n    }\n}"
+        },
+        "java": {
+          "code": "class TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode(int val) { this.val = val; }\n}\n\nclass InvertBinaryTree {\n    public TreeNode invertTree(TreeNode root) {\n        // Base case: empty tree\n        if (root == null) {\n            return null;\n        }\n        \n        // Create new node with same value\n        TreeNode inverted = new TreeNode(root.val);\n        \n        // Recursively invert subtrees and swap them\n        // New left comes from old right\n        inverted.left = invertTree(root.right);\n        // New right comes from old left\n        inverted.right = invertTree(root.left);\n        \n        return inverted;\n    }\n}"
+        },
+        "cpp": {
+          "code": "struct TreeNode {\n    int val;\n    TreeNode *left;\n    TreeNode *right;\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n};\n\nclass InvertBinaryTree {\npublic:\n    TreeNode* invertTree(TreeNode* root) {\n        // Base case: empty tree\n        if (root == nullptr) {\n            return nullptr;\n        }\n        \n        // Create new node with same value\n        TreeNode* inverted = new TreeNode(root->val);\n        \n        // Recursively invert subtrees and swap them\n        // New left comes from old right\n        inverted->left = invertTree(root->right);\n        // New right comes from old left\n        inverted->right = invertTree(root->left);\n        \n        return inverted;\n    }\n};"
+        }
+      }
+    },
+    {
+      "key": "optimized",
+      "name": "Optimized - Recursive In-Place Swap",
+      "optimized_solution_coding_pattern": "Recursive DFS with In-Place Modification",
+      "time_complexity": "O(n)",
+      "time_explanation": "We still visit each of the n nodes exactly once, but now we perform only pointer swaps (O(1) operations) at each node instead of creating new nodes. The recursion visits every node once: at each node we swap its children references and recursively process both subtrees. Total operations: n nodes × O(1) work per node = O(n). This is the same time complexity as brute force, but with lower constant factors due to no memory allocation",
+      "time_explanation_for_quiz": "We visit each of the n nodes exactly once in a depth-first manner, performing O(1) pointer swap operations at each node, resulting in O(n) total time",
+      "space_complexity": "O(h)",
+      "space_explanation": "The only space used is the recursion call stack, which goes as deep as the height h of the tree. For a balanced binary tree, h = O(log n), but for a completely skewed tree (like a linked list), h = O(n). We no longer create new nodes, which eliminates the O(n) space overhead from the brute force approach. The space improvement is significant: from O(n + h) down to just O(h)",
+      "space_explanation_for_quiz": "The recursion stack uses O(h) space where h is the tree height. For balanced trees h = O(log n), for skewed trees h = O(n). No additional space is needed since we swap in-place",
+      "explanation": "The brute force approach wastes memory by creating an entirely new tree. We can do much better by recognizing that we only need to swap node references, not create new nodes. In this optimized approach, we modify the tree in-place by recursively traversing it and swapping each node's left and right children. At each node, we first recursively invert the left subtree, then recursively invert the right subtree, and finally swap the left and right child pointers. This ensures that by the time we swap a node's children, those subtrees have already been inverted. The key insight is that swapping pointers is sufficient - we don't need to duplicate the tree structure. This reduces space from O(n) to just O(h) for the call stack.",
+      "pros": [
+        "In-place modification saves O(n) space",
+        "Elegant and concise recursive solution",
+        "Better space complexity than brute force"
+      ],
+      "cons": [
+        "Uses recursion stack space O(h)",
+        "May cause stack overflow for very deep trees",
+        "Modifies the original tree structure"
+      ],
+      "implementations": {
+        "python": {
+          "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\nclass InvertBinaryTree:\n    def invertTree(self, root: TreeNode) -> TreeNode:\n        # Base case: empty tree or leaf node\n        if root is None:\n            return None\n        \n        # Recursively invert both subtrees first\n        left_inverted = self.invertTree(root.left)\n        right_inverted = self.invertTree(root.right)\n        \n        # Swap the children\n        root.left = right_inverted\n        root.right = left_inverted\n        \n        return root"
+        },
+        "javascript": {
+          "code": "class TreeNode {\n    constructor(val = 0, left = null, right = null) {\n        this.val = val;\n        this.left = left;\n        this.right = right;\n    }\n}\n\nclass InvertBinaryTree {\n    invertTree(root) {\n        // Base case: empty tree or leaf node\n        if (root === null) {\n            return null;\n        }\n        \n        // Recursively invert both subtrees first\n        const leftInverted = this.invertTree(root.left);\n        const rightInverted = this.invertTree(root.right);\n        \n        // Swap the children\n        root.left = rightInverted;\n        root.right = leftInverted;\n        \n        return root;\n    }\n}"
+        },
+        "java": {
+          "code": "class TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode(int val) { this.val = val; }\n}\n\nclass InvertBinaryTree {\n    public TreeNode invertTree(TreeNode root) {\n        // Base case: empty tree or leaf node\n        if (root == null) {\n            return null;\n        }\n        \n        // Recursively invert both subtrees first\n        TreeNode leftInverted = invertTree(root.left);\n        TreeNode rightInverted = invertTree(root.right);\n        \n        // Swap the children\n        root.left = rightInverted;\n        root.right = leftInverted;\n        \n        return root;\n    }\n}"
+        },
+        "cpp": {
+          "code": "struct TreeNode {\n    int val;\n    TreeNode *left;\n    TreeNode *right;\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n};\n\nclass InvertBinaryTree {\npublic:\n    TreeNode* invertTree(TreeNode* root) {\n        // Base case: empty tree or leaf node\n        if (root == nullptr) {\n            return nullptr;\n        }\n        \n        // Recursively invert both subtrees first\n        TreeNode* leftInverted = invertTree(root->left);\n        TreeNode* rightInverted = invertTree(root->right);\n        \n        // Swap the children\n        root->left = rightInverted;\n        root->right = leftInverted;\n        \n        return root;\n    }\n};"
+        }
+      }
+    },
+    {
+      "key": "optimal",
+      "name": "Optimal - Iterative BFS with Queue",
+      "optimal_solution_coding_pattern": "Iterative Level-Order Traversal (BFS)",
+      "time_complexity": "O(n)",
+      "time_explanation": "We visit each of the n nodes exactly once using level-order traversal (BFS). For each node, we perform O(1) operations: dequeue the node, swap its children, and enqueue its children if they exist. The queue operations (enqueue/dequeue) are O(1) each. Total work: n nodes × O(1) per node = O(n). This is the same time complexity as previous approaches since we must touch every node to invert the tree",
+      "time_explanation_for_quiz": "We process each of the n nodes exactly once in level-order, performing constant-time queue operations and pointer swaps at each node, giving us O(n) time",
+      "space_complexity": "O(w)",
+      "space_explanation": "The queue stores nodes level by level, so at most it contains all nodes at the widest level of the tree. The maximum width w occurs at the last level of a complete binary tree, where w ≈ n/2 for n nodes, making it O(n) in the worst case. However, for balanced trees, the width is typically much smaller than n. Compared to the recursive approach which uses O(h) stack space, this iterative approach trades stack space for queue space. The key difference: O(w) can be larger than O(h) for wide balanced trees, but it's more predictable and won't cause stack overflow issues",
+      "space_explanation_for_quiz": "The queue holds at most w nodes where w is the maximum width of any level in the tree. In the worst case (complete binary tree), w ≈ n/2, so space is O(n). Typically O(w) where w is the widest level",
+      "explanation": "The recursive solution, while elegant, has a potential problem: it uses the call stack which can overflow for very deep trees (even though the problem constraints make this unlikely). The optimal solution eliminates this risk by using an explicit queue instead of recursion. We use BFS (level-order traversal) to visit nodes iteratively. We start by adding the root to a queue, then repeatedly: dequeue a node, swap its left and right children, and enqueue both children (if they exist). This continues until the queue is empty, meaning we've processed all nodes. The key advantage is that we avoid recursion entirely, making the solution safer for deep trees and easier to reason about in terms of space usage. The iterative nature also makes it easier to add features like progress tracking or early termination.",
+      "trick": {
+        "summary": "THE TRICK: Use an explicit queue to replace recursion, eliminating stack overflow risk while maintaining the same O(n) time complexity. Process nodes level-by-level, swapping children in-place as we go.",
+        "details": [
+          "By using BFS with a queue, we eliminate the recursion call stack entirely, trading O(h) stack space for O(w) queue space where w is the tree's maximum width",
+          "The iterative approach processes nodes level-by-level, which makes the algorithm's progress more predictable and allows for easier debugging and modification without risk of stack overflow on deep trees"
+        ]
+      },
+      "pros": [
+        "No recursion - eliminates stack overflow risk",
+        "Easy to debug and understand the flow",
+        "Can be easily modified for additional processing"
+      ],
+      "cons": [
+        "Uses O(w) space for queue where w can be larger than height h",
+        "More lines of code than recursive solution",
+        "Requires explicit queue data structure"
+      ],
+      "implementations": {
+        "python": {
+          "code": "from collections import deque\n\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\nclass InvertBinaryTree:\n    def invertTree(self, root: TreeNode) -> TreeNode:\n        # Edge case: empty tree\n        if root is None:\n            return None\n        \n        # Initialize queue with root for BFS\n        queue = deque([root])\n        \n        # Process nodes level by level\n        while queue:\n            # Get next node to process\n            node = queue.popleft()\n            \n            # Swap left and right children\n            node.left, node.right = node.right, node.left\n            \n            # Add children to queue for processing\n            if node.left:\n                queue.append(node.left)\n            if node.right:\n                queue.append(node.right)\n        \n        return root"
+        },
+        "javascript": {
+          "code": "class TreeNode {\n    constructor(val = 0, left = null, right = null) {\n        this.val = val;\n        this.left = left;\n        this.right = right;\n    }\n}\n\nclass InvertBinaryTree {\n    invertTree(root) {\n        // Edge case: empty tree\n        if (root === null) {\n            return null;\n        }\n        \n        // Initialize queue with root for BFS\n        const queue = [root];\n        \n        // Process nodes level by level\n        while (queue.length > 0) {\n            // Get next node to process\n            const node = queue.shift();\n            \n            // Swap left and right children\n            [node.left, node.right] = [node.right, node.left];\n            \n            // Add children to queue for processing\n            if (node.left !== null) {\n                queue.push(node.left);\n            }\n            if (node.right !== null) {\n                queue.push(node.right);\n            }\n        }\n        \n        return root;\n    }\n}"
+        },
+        "java": {
+          "code": "import java.util.*;\n\nclass TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode(int val) { this.val = val; }\n}\n\nclass InvertBinaryTree {\n    public TreeNode invertTree(TreeNode root) {\n        // Edge case: empty tree\n        if (root == null) {\n            return null;\n        }\n        \n        // Initialize queue with root for BFS\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        \n        // Process nodes level by level\n        while (!queue.isEmpty()) {\n            // Get next node to process\n            TreeNode node = queue.poll();\n            \n            // Swap left and right children\n            TreeNode temp = node.left;\n            node.left = node.right;\n            node.right = temp;\n            \n            // Add children to queue for processing\n            if (node.left != null) {\n                queue.offer(node.left);\n            }\n            if (node.right != null) {\n                queue.offer(node.right);\n            }\n        }\n        \n        return root;\n    }\n}"
+        },
+        "cpp": {
+          "code": "#include <queue>\n\nstruct TreeNode {\n    int val;\n    TreeNode *left;\n    TreeNode *right;\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n};\n\nclass InvertBinaryTree {\npublic:\n    TreeNode* invertTree(TreeNode* root) {\n        // Edge case: empty tree\n        if (root == nullptr) {\n            return nullptr;\n        }\n        \n        // Initialize queue with root for BFS\n        std::queue<TreeNode*> queue;\n        queue.push(root);\n        \n        // Process nodes level by level\n        while (!queue.empty()) {\n            // Get next node to process\n            TreeNode* node = queue.front();\n            queue.pop();\n            \n            // Swap left and right children\n            TreeNode* temp = node->left;\n            node->left = node->right;\n            node->right = temp;\n            \n            // Add children to queue for processing\n            if (node->left != nullptr) {\n                queue.push(node->left);\n            }\n            if (node->right != nullptr) {\n                queue.push(node->right);\n            }\n        }\n        \n        return root;\n    }\n};"
+        }
+      }
+    }
+  ],
+  "comparison_table": {
+    "columns": ["Approach", "Time", "Space", "Pros", "Cons"],
+    "rows": [
+      {
+        "approach": "Brute Force - Create New Tree",
+        "time": "O(n)",
+        "space": "O(n + h) ≈ O(n)",
+        "pros": ["Simple to understand", "Original tree preserved", "No pointer manipulation complexity"],
+        "cons": ["Wastes O(n) space creating duplicate nodes", "Slower due to memory allocation", "Unnecessary when in-place works"]
+      },
+      {
+        "approach": "Optimized - Recursive In-Place",
+        "time": "O(n)",
+        "space": "O(h)",
+        "pros": ["Elegant and concise code", "In-place saves memory vs brute force", "Natural tree recursion pattern"],
+        "cons": ["Uses call stack O(h) space", "Risk of stack overflow on deep trees", "Less intuitive control flow"]
+      },
+      {
+        "approach": "Optimal - Iterative BFS",
+        "time": "O(n)",
+        "space": "O(w)",
+        "pros": ["No recursion - no stack overflow", "Predictable memory usage", "Easy to debug and extend"],
+        "cons": ["Queue space O(w) can exceed O(h) for wide trees", "More verbose than recursive", "Requires queue data structure"]
+      }
+    ]
+  }
+}
