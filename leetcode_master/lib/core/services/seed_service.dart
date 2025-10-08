@@ -1,0 +1,1 @@
+export 'seed_service_isar.dart';
