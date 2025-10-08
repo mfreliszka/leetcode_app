@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/models/category.dart';
-import '../../core/repositories/category_repository.dart';
-import '../../core/repositories/problem_repository.dart';
+import '../../core/repositories/category_repository_isar.dart';
+import '../../core/repositories/problem_repository_isar.dart';
 import 'widgets/category_card.dart';
 
 final _categoryRepoProvider = Provider((ref) => CategoryRepository());
@@ -54,7 +54,9 @@ class PracticeScreen extends ConsumerWidget {
                   return ProviderScope(
                     overrides: [
                       categoryProvider.overrideWithValue(category),
-                      problemRepositoryProvider.overrideWithValue(ref.read(_problemRepoProvider)),
+                      problemRepositoryProvider.overrideWithValue(
+                        ref.read(_problemRepoProvider),
+                      ),
                     ],
                     child: const CategoryCard(),
                   );

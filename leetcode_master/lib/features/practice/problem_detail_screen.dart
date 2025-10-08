@@ -8,10 +8,10 @@ import '../../core/models/difficulty.dart';
 import '../../app/theme.dart';
 import '../../core/services/progress_service.dart';
 import '../../core/services/bookmark_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import '../../core/repositories/problem_content_repository.dart';
 import '../../core/models/problem_content.dart';
+import '../../core/services/settings_service.dart';
 
 class ProblemDetailScreen extends ConsumerWidget {
   const ProblemDetailScreen({super.key, required this.problem});
@@ -34,13 +34,7 @@ class ProblemDetailScreen extends ConsumerWidget {
   });
   static final bookmarkStateProvider = StateProvider.family<bool, int>((ref, problemId) => false);
 
-  // Notes persistence (per-problem)
-  static const String _kNotesPrefPrefix = 'problem_notes_v1_';
-  static final notesLoaderProvider = FutureProvider.family<String, int>((ref, problemId) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('$_kNotesPrefPrefix$problemId') ?? '';
-  });
-  static final notesStateProvider = StateProvider.family<String, int>((ref, problemId) => '');
+  // Notes removed in Isar-only flow; no local notes persistence
 
   // Problem content (approaches) loader
   static final _contentRepoProvider = Provider((ref) => ProblemContentRepository());
@@ -49,10 +43,12 @@ class ProblemDetailScreen extends ConsumerWidget {
     return repo.fetchByProblemId(problemId);
   });
 
+  // Default language setting is provided globally in settings_service.dart
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 3,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(problem.title),
@@ -103,16 +99,20 @@ class ProblemDetailScreen extends ConsumerWidget {
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.description_outlined), text: 'Overview'),
-              Tab(icon: Icon(Icons.checklist_outlined), text: 'Steps'),
-              Tab(icon: Icon(Icons.note_outlined), text: 'Notes'),
+              Tab(icon: Icon(Icons.code), text: 'Brute Force'),
+              Tab(icon: Icon(Icons.tune), text: 'Optimized'),
+              Tab(icon: Icon(Icons.auto_awesome), text: 'Optimal'),
+              Tab(icon: Icon(Icons.table_chart_outlined), text: 'Summary'),
             ],
           ),
         ),
         body: const TabBarView(
           children: [
             _OverviewTab(),
-            _StepsTab(),
-            _NotesTab(),
+            _BruteForceTab(),
+            _OptimizedTab(),
+            _OptimalTab(),
+            _SummaryTab(),
           ],
         ),
       ),
@@ -183,12 +183,14 @@ class ProblemDetailScreen extends ConsumerWidget {
   Widget _seedProgressFromStorage(WidgetRef ref) {
     final loaded = ref.watch(stepsProgressLoaderProvider(problem.id));
     loaded.whenData((value) {
-      final current = ref.read(stepsProgressProvider(problem.id));
-      final curStr = current.map((b) => b ? '1' : '0').join(',');
-      final valStr = value.map((b) => b ? '1' : '0').join(',');
-      if (curStr != valStr) {
-        ref.read(stepsProgressProvider(problem.id).notifier).state = value;
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final current = ref.read(stepsProgressProvider(problem.id));
+        final curStr = current.map((b) => b ? '1' : '0').join(',');
+        final valStr = value.map((b) => b ? '1' : '0').join(',');
+        if (curStr != valStr) {
+          ref.read(stepsProgressProvider(problem.id).notifier).state = value;
+        }
+      });
     });
     return const SizedBox.shrink();
   }
@@ -270,43 +272,22 @@ class ProblemDetailScreen extends ConsumerWidget {
     );
   }
 
-  // Seed notes from persisted storage
-  Widget _seedNotesFromStorage(WidgetRef ref) {
-    final loaded = ref.watch(notesLoaderProvider(problem.id));
-    loaded.whenData((value) {
-      final current = ref.read(notesStateProvider(problem.id));
-      if (current != value) {
-        ref.read(notesStateProvider(problem.id).notifier).state = value;
+  // Notes and legacy steps list removed; approaches are shown per-tab
+
+  Widget _approachCard(BuildContext context, ApproachInfo a, {String? preferredLanguage}) {
+    String? usedLanguage;
+    final codeToShow = () {
+      if (preferredLanguage != null && a.implementations.containsKey(preferredLanguage)) {
+        usedLanguage = preferredLanguage;
+        return a.implementations[preferredLanguage];
       }
-    });
-    return const SizedBox.shrink();
-  }
-
-  Future<void> _persistNotes(int id, String notes) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('$_kNotesPrefPrefix$id', notes);
-  }
-
-  // Render steps content from assets (approaches)
-  Widget _stepsContent(BuildContext context, WidgetRef ref) {
-    final contentAsync = ref.watch(problemContentProvider(problem.id));
-    return contentAsync.when(
-      data: (content) {
-        if (content == null || content.approaches.isEmpty) {
-          return const Text('Approach write-up coming soon.');
-        }
-        return Column(
-          children: [
-            for (final a in content.approaches) _approachCard(context, a),
-          ],
-        );
-      },
-      loading: () => const LinearProgressIndicator(),
-      error: (e, st) => const Text('Failed to load approaches.'),
-    );
-  }
-
-  Widget _approachCard(BuildContext context, ApproachInfo a) {
+      if (a.implementations.isNotEmpty) {
+        final firstEntry = a.implementations.entries.first;
+        usedLanguage = firstEntry.key;
+        return firstEntry.value;
+      }
+      return a.code; // no language info for this fallback
+    }();
     return Card(
       elevation: 1,
       child: Padding(
@@ -335,8 +316,14 @@ class ProblemDetailScreen extends ConsumerWidget {
               const Text('Cons:', style: TextStyle(fontWeight: FontWeight.w600)),
               for (final c in a.cons) Row(children: [const Text('• '), Expanded(child: Text(c))]),
             ],
-            if (a.code != null && a.code!.trim().isNotEmpty) ...[
+            if (codeToShow != null && codeToShow.trim().isNotEmpty) ...[
               const SizedBox(height: 12),
+              if (usedLanguage != null) Text('Language: $usedLanguage', style: const TextStyle(color: Colors.black54)),
+              if (preferredLanguage != null && usedLanguage != null && usedLanguage != preferredLanguage)
+                Text(
+                  'No snippet for "$preferredLanguage"; showing "$usedLanguage"',
+                  style: const TextStyle(color: Colors.black45, fontSize: 12),
+                ),
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -345,7 +332,7 @@ class ProblemDetailScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 padding: const EdgeInsets.all(12),
-                child: SelectableText(a.code!, style: const TextStyle(fontFamily: 'monospace')),
+                child: SelectableText(codeToShow, style: const TextStyle(fontFamily: 'monospace')),
               ),
             ],
           ],
@@ -364,6 +351,7 @@ class _OverviewTab extends ConsumerWidget {
     // Access the nearest ProblemDetailScreen to read the problem
     final element = context.findAncestorWidgetOfExactType<ProblemDetailScreen>();
     final problem = element!.problem;
+    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -380,50 +368,112 @@ class _OverviewTab extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView(
-              children: [
-                Card(
-                  elevation: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Problem Statement', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'A clear, concise statement describing the input, required output, and constraints. This section will include edge cases and clarifications to eliminate ambiguity.',
+            child: contentAsync.when(
+              data: (content) {
+                if (content == null) {
+                  return const Center(child: Text('Content not available.'));
+                }
+                return ListView(
+                  children: [
+                    Card(
+                      elevation: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Problem Statement', style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 8),
+                            Text(content.statement.isNotEmpty ? content.statement : 'No statement provided.'),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  elevation: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Examples', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        const Text('Example 1'),
-                        const SizedBox(height: 4),
-                        const Text('Input: ...'),
-                        const Text('Output: ...'),
-                        const Text('Explanation: ...'),
-                        const SizedBox(height: 12),
-                        const Text('Example 2'),
-                        const SizedBox(height: 4),
-                        const Text('Input: ...'),
-                        const Text('Output: ...'),
-                        const Text('Explanation: ...'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                    if (content.inputFormat.isNotEmpty || content.outputFormat.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Card(
+                        elevation: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Input/Output', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              if (content.inputFormat.isNotEmpty) ...[
+                                const Text('Input Format', style: TextStyle(fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                Text(content.inputFormat),
+                              ],
+                              if (content.outputFormat.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                const Text('Output Format', style: TextStyle(fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                Text(content.outputFormat),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (content.constraints.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Card(
+                        elevation: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Constraints', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              for (final c in content.constraints) ...[
+                                Row(children: [
+                                  const Text('• '),
+                                  Expanded(child: Text(c.name.isNotEmpty ? '${c.name}: ${c.value}' : c.value)),
+                                ]),
+                                if (c.explanation.isNotEmpty) Padding(
+                                  padding: const EdgeInsets.only(left: 18.0, top: 4),
+                                  child: Text(c.explanation, style: const TextStyle(color: Colors.black54)),
+                                ),
+                                const SizedBox(height: 6),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (content.testCases.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Card(
+                        elevation: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Examples', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              for (final t in content.testCases) ...[
+                                if (t.name.isNotEmpty) Text(t.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                if (t.inputJson != null && t.inputJson!.isNotEmpty)
+                                  Text('Input: ${t.inputJson}'),
+                                if (t.output.isNotEmpty) Text('Output: ${t.output}'),
+                                if (t.explanation != null && t.explanation!.isNotEmpty)
+                                  Text('Explanation: ${t.explanation}'),
+                                const SizedBox(height: 12),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => const Center(child: Text('Failed to load content.')),
             ),
           ),
         ],
@@ -461,16 +511,17 @@ class _OverviewTab extends ConsumerWidget {
   }
 }
 
-// Steps tab
-class _StepsTab extends ConsumerWidget {
-  const _StepsTab();
+// Brute Force tab
+class _BruteForceTab extends ConsumerWidget {
+  const _BruteForceTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final element = context.findAncestorWidgetOfExactType<ProblemDetailScreen>();
-    final screen = element!;
+    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
     final problem = screen.problem;
-    return Padding(
+    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final defaultLangAsync = ref.watch(defaultLanguageProvider);
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,11 +536,18 @@ class _StepsTab extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Solution roadmap', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          const Text('Brute force → Optimized → Optimal.', style: TextStyle(color: Colors.black54)),
-          const SizedBox(height: 16),
-          screen._stepsContent(context, ref),
+          contentAsync.when(
+            data: (content) {
+              if (content == null) return const Text('Content not available.');
+              final list = content.approaches.where((a) => a.key == 'brute_force').toList();
+              if (list.isEmpty) return const Text('Brute Force approach not available.');
+              final a = list.first;
+              final selectedLang = defaultLangAsync.hasValue ? defaultLangAsync.value : null;
+              return Column(children: [screen._approachCard(context, a, preferredLanguage: selectedLang)]);
+            },
+            loading: () => const LinearProgressIndicator(),
+            error: (e, st) => const Text('Failed to load approach.'),
+          ),
           const SizedBox(height: 16),
           screen._seedProgressFromStorage(ref),
           screen._approachProgress(context, ref),
@@ -499,40 +557,156 @@ class _StepsTab extends ConsumerWidget {
   }
 }
 
-// Notes tab
-class _NotesTab extends ConsumerWidget {
-  const _NotesTab();
+// Optimized tab
+class _OptimizedTab extends ConsumerWidget {
+  const _OptimizedTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final element = context.findAncestorWidgetOfExactType<ProblemDetailScreen>();
-    final screen = element!;
+    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
     final problem = screen.problem;
-
-    // Seed notes from storage once
-    screen._seedNotesFromStorage(ref);
-
-    final notes = ref.watch(ProblemDetailScreen.notesStateProvider(problem.id));
-    return Padding(
+    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final defaultLangAsync = ref.watch(defaultLanguageProvider);
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Personal notes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          const Text('Capture insights, pitfalls, and alternative approaches. Notes are saved locally.'),
-          const SizedBox(height: 12),
-          TextFormField(
-            initialValue: notes,
-            maxLines: 8,
-            decoration: const InputDecoration(
-              hintText: 'Write your notes here...',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (v) async {
-              ref.read(ProblemDetailScreen.notesStateProvider(problem.id).notifier).state = v;
-              await screen._persistNotes(problem.id, v);
+          Row(
+            children: [
+              screen._difficultyChip(problem.difficulty),
+              const SizedBox(width: 12),
+              screen._timeChip('${problem.estimatedMinutes} min'),
+              const Spacer(),
+              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+            ],
+          ),
+          const SizedBox(height: 16),
+          contentAsync.when(
+            data: (content) {
+              if (content == null) return const Text('Content not available.');
+              final list = content.approaches.where((a) => a.key == 'optimized').toList();
+              if (list.isEmpty) return const Text('Optimized approach not available.');
+              final a = list.first;
+              final selectedLang = defaultLangAsync.hasValue ? defaultLangAsync.value : null;
+              return Column(children: [screen._approachCard(context, a, preferredLanguage: selectedLang)]);
             },
+            loading: () => const LinearProgressIndicator(),
+            error: (e, st) => const Text('Failed to load approach.'),
+          ),
+          const SizedBox(height: 16),
+          screen._seedProgressFromStorage(ref),
+          screen._approachProgress(context, ref),
+        ],
+      ),
+    );
+  }
+}
+
+// Optimal tab
+class _OptimalTab extends ConsumerWidget {
+  const _OptimalTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
+    final problem = screen.problem;
+    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final defaultLangAsync = ref.watch(defaultLanguageProvider);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              screen._difficultyChip(problem.difficulty),
+              const SizedBox(width: 12),
+              screen._timeChip('${problem.estimatedMinutes} min'),
+              const Spacer(),
+              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+            ],
+          ),
+          const SizedBox(height: 16),
+          contentAsync.when(
+            data: (content) {
+              if (content == null) return const Text('Content not available.');
+              final list = content.approaches.where((a) => a.key == 'optimal').toList();
+              if (list.isEmpty) return const Text('Optimal approach not available.');
+              final a = list.first;
+              final selectedLang = defaultLangAsync.hasValue ? defaultLangAsync.value : null;
+              return Column(children: [screen._approachCard(context, a, preferredLanguage: selectedLang)]);
+            },
+            loading: () => const LinearProgressIndicator(),
+            error: (e, st) => const Text('Failed to load approach.'),
+          ),
+          const SizedBox(height: 16),
+          screen._seedProgressFromStorage(ref),
+          screen._approachProgress(context, ref),
+        ],
+      ),
+    );
+  }
+}
+
+// Summary tab
+class _SummaryTab extends ConsumerWidget {
+  const _SummaryTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
+    final problem = screen.problem;
+    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              screen._difficultyChip(problem.difficulty),
+              const SizedBox(width: 12),
+              screen._timeChip('${problem.estimatedMinutes} min'),
+              const Spacer(),
+              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+            ],
+          ),
+          const SizedBox(height: 16),
+          contentAsync.when(
+            data: (content) {
+              if (content == null) return const Text('Content not available.');
+              final table = content.comparisonTable;
+              if (table == null || table.rows.isEmpty) {
+                return const Text('Summary table coming soon.');
+              }
+              return Card(
+                elevation: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Approach Comparison', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 12),
+                      for (final r in table.rows) ...[
+                        Row(children: [
+                          Expanded(child: Text(r.approach, style: const TextStyle(fontWeight: FontWeight.w600))),
+                          Expanded(child: Text('Time: ${r.time}')),
+                          Expanded(child: Text('Space: ${r.space}')),
+                        ]),
+                        const SizedBox(height: 4),
+                        if (r.pros.isNotEmpty) Text('Pros: ${r.pros.join(', ')}', style: const TextStyle(color: Colors.black54)),
+                        if (r.cons.isNotEmpty) Text('Cons: ${r.cons.join(', ')}', style: const TextStyle(color: Colors.black54)),
+                        const Divider(height: 16),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const LinearProgressIndicator(),
+            error: (e, st) => const Text('Failed to load summary.'),
           ),
         ],
       ),

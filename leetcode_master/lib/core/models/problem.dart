@@ -7,6 +7,8 @@ class Problem {
   final Difficulty difficulty;
   final int estimatedMinutes;
   final bool premium;
+  final bool isNeetcode150;
+  final bool isBlind75;
 
   const Problem({
     required this.id,
@@ -15,6 +17,8 @@ class Problem {
     required this.difficulty,
     required this.estimatedMinutes,
     required this.premium,
+    this.isNeetcode150 = false,
+    this.isBlind75 = false,
   });
 
   factory Problem.fromMap(Map<String, dynamic> map) => Problem(
@@ -24,6 +28,8 @@ class Problem {
         difficulty: difficultyFromString(map['difficulty'] as String),
         estimatedMinutes: (map['estimated_minutes'] as int?) ?? 15,
         premium: (map['premium'] as bool?) ?? false,
+        isNeetcode150: (map['is_neetcode_150'] as bool?) ?? false,
+        isBlind75: (map['is_blind_75'] as bool?) ?? false,
       );
 
   Map<String, dynamic> toMap() => {
@@ -33,5 +39,7 @@ class Problem {
         'difficulty': difficultyToString(difficulty),
         'estimated_minutes': estimatedMinutes,
         'premium': premium ? 1 : 0,
+        'is_neetcode_150': isNeetcode150 ? 1 : 0,
+        'is_blind_75': isBlind75 ? 1 : 0,
       };
 }

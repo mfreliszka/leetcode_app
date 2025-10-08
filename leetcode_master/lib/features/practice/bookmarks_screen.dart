@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/problem.dart';
 import '../../core/models/difficulty.dart';
-import '../../core/repositories/problem_repository.dart';
+import '../../core/repositories/problem_repository_isar.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../app/theme.dart';
 
@@ -32,9 +32,7 @@ class BookmarksScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(bookmarkedProblemsProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bookmarks'),
-      ),
+      appBar: AppBar(title: const Text('Bookmarks')),
       body: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error: $e')),
@@ -52,15 +50,21 @@ class BookmarksScreen extends ConsumerWidget {
                 child: ListTile(
                   title: Text(p.title),
                   subtitle: Text(_difficultyLabel(p.difficulty)),
-                  trailing: p.premium ? const Icon(Icons.lock, color: Colors.black45) : const Icon(Icons.chevron_right),
+                  trailing: p.premium
+                      ? const Icon(Icons.lock, color: Colors.black45)
+                      : const Icon(Icons.chevron_right),
                   onTap: () {
                     if (p.premium) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Premium problem. Upgrade to unlock.')),
+                        const SnackBar(
+                          content: Text('Premium problem. Upgrade to unlock.'),
+                        ),
                       );
                       return;
                     }
-                    GoRouter.of(context).go('/practice/problem/${p.id}', extra: p);
+                    GoRouter.of(
+                      context,
+                    ).go('/practice/problem/${p.id}', extra: p);
                   },
                 ),
               );

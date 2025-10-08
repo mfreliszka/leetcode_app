@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/category.dart';
-import '../../../core/repositories/problem_repository.dart';
+import '../../../core/repositories/problem_repository_isar.dart';
 import '../../../app/theme.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/services/bookmark_service.dart';
 import '../../../core/services/progress_service.dart';
 
-final categoryProvider = Provider<Category>((ref) => throw UnimplementedError());
-final problemRepositoryProvider = Provider<ProblemRepository>((ref) => ProblemRepository());
+final categoryProvider = Provider<Category>(
+  (ref) => throw UnimplementedError(),
+);
+final problemRepositoryProvider = Provider<ProblemRepository>(
+  (ref) => ProblemRepository(),
+);
 
 final problemCountProvider = FutureProvider<int>((ref) async {
   final category = ref.watch(categoryProvider);
@@ -23,7 +27,10 @@ final _progressRepoProvider = Provider((ref) => ApproachProgressRepository());
 class CategoryMetrics {
   final int bookmarkedCount;
   final int completedCount; // problems with all three approaches checked
-  const CategoryMetrics({required this.bookmarkedCount, required this.completedCount});
+  const CategoryMetrics({
+    required this.bookmarkedCount,
+    required this.completedCount,
+  });
 }
 
 final categoryMetricsProvider = FutureProvider<CategoryMetrics>((ref) async {
@@ -42,7 +49,10 @@ final categoryMetricsProvider = FutureProvider<CategoryMetrics>((ref) async {
       completed++;
     }
   }
-  return CategoryMetrics(bookmarkedCount: bookmarked, completedCount: completed);
+  return CategoryMetrics(
+    bookmarkedCount: bookmarked,
+    completedCount: completed,
+  );
 });
 
 class CategoryCard extends ConsumerWidget {
@@ -60,16 +70,26 @@ class CategoryCard extends ConsumerWidget {
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text('Premium Category'),
-              content: const Text('Unlock premium to access advanced categories.'),
+              content: const Text(
+                'Unlock premium to access advanced categories.',
+              ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Later')),
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Learn More')),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Later'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Learn More'),
+                ),
               ],
             ),
           );
           return;
         }
-        GoRouter.of(context).go('/practice/category/${category.id}', extra: category);
+        GoRouter.of(
+          context,
+        ).go('/practice/category/${category.id}', extra: category);
       },
       child: Card(
         elevation: 1,
@@ -89,7 +109,8 @@ class CategoryCard extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           category.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -102,34 +123,37 @@ class CategoryCard extends ConsumerWidget {
                   countAsync.when(
                     loading: () => const LinearProgressIndicator(minHeight: 6),
                     error: (e, st) => const Text('Problem count unavailable'),
-                    data: (count) => Text('$count problems', style: const TextStyle(color: Colors.black54)),
+                    data: (count) => Text(
+                      '$count problems',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Consumer(
                     builder: (context, ref, _) {
                       final metrics = ref.watch(categoryMetricsProvider);
                       return metrics.when(
-                        loading: () => const LinearProgressIndicator(minHeight: 6),
-                        error: (e, st) => const Text('Metrics unavailable', style: TextStyle(color: Colors.black54)),
-                        data: (m) => Text('Bookmarks: ${m.bookmarkedCount} • Completed: ${m.completedCount}',
-                            style: const TextStyle(color: Colors.black54)),
+                        loading: () =>
+                            const LinearProgressIndicator(minHeight: 6),
+                        error: (e, st) => const Text(
+                          'Metrics unavailable',
+                          style: TextStyle(color: Colors.black54),
+                        ),
+                        data: (m) => Text(
+                          'Bookmarks: ${m.bookmarkedCount} • Completed: ${m.completedCount}',
+                          style: const TextStyle(color: Colors.black54),
+                        ),
                       );
                     },
                   ),
                   const Spacer(),
-                  Row(
-                    children: const [
-                      Expanded(child: _DifficultyBar()),
-                    ],
-                  ),
+                  Row(children: const [Expanded(child: _DifficultyBar())]),
                 ],
               ),
             ),
             if (category.premium)
               Positioned.fill(
-                child: Container(
-                  color: Colors.black.withOpacity(0.08),
-                ),
+                child: Container(color: Colors.black.withOpacity(0.08)),
               ),
           ],
         ),
@@ -147,9 +171,18 @@ class _DifficultyBar extends StatelessWidget {
       height: 8,
       child: Row(
         children: const [
-          Expanded(flex: 1, child: DecoratedBox(decoration: BoxDecoration(color: kEasyColor))),
-          Expanded(flex: 2, child: DecoratedBox(decoration: BoxDecoration(color: kMediumColor))),
-          Expanded(flex: 1, child: DecoratedBox(decoration: BoxDecoration(color: kHardColor))),
+          Expanded(
+            flex: 1,
+            child: DecoratedBox(decoration: BoxDecoration(color: kEasyColor)),
+          ),
+          Expanded(
+            flex: 2,
+            child: DecoratedBox(decoration: BoxDecoration(color: kMediumColor)),
+          ),
+          Expanded(
+            flex: 1,
+            child: DecoratedBox(decoration: BoxDecoration(color: kHardColor)),
+          ),
         ],
       ),
     );

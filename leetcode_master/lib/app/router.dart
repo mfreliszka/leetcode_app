@@ -10,8 +10,8 @@ import '../features/progress/progress_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../core/models/category.dart';
 import '../core/models/problem.dart';
-import '../core/repositories/category_repository.dart';
-import '../core/repositories/problem_repository.dart';
+import '../core/repositories/category_repository_isar.dart';
+import '../core/repositories/problem_repository_isar.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/practice',
@@ -104,7 +104,9 @@ class ProblemDetailRoute extends StatelessWidget {
       future: ProblemRepository().findById(problemId),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         final problem = snapshot.data;
         if (problem == null) {
@@ -127,11 +129,15 @@ class CategoryDetailRoute extends StatelessWidget {
       future: CategoryRepository().findById(categoryId),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         final category = snapshot.data;
         if (category == null) {
-          return const Scaffold(body: Center(child: Text('Category not found')));
+          return const Scaffold(
+            body: Center(child: Text('Category not found')),
+          );
         }
         return CategoryDetailScreen(category: category);
       },

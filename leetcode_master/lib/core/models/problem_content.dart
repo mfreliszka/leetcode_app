@@ -1,44 +1,97 @@
-class ApproachInfo {
+class ConstraintInfo {
   final String name;
-  final String timeComplexity;
-  final String spaceComplexity;
+  final String value;
   final String explanation;
-  final String? code;
+
+  const ConstraintInfo({this.name = '', this.value = '', this.explanation = ''});
+}
+
+class TestCaseInfo {
+  final String name;
+  final String? inputJson;
+  final String output;
+  final String? explanation;
+
+  const TestCaseInfo({this.name = '', this.inputJson, this.output = '', this.explanation});
+}
+
+class ComparisonRowInfo {
+  final String approach;
+  final String time;
+  final String space;
   final List<String> pros;
   final List<String> cons;
 
-  ApproachInfo({
-    required this.name,
-    required this.timeComplexity,
-    required this.spaceComplexity,
-    required this.explanation,
-    this.code,
+  const ComparisonRowInfo({
+    this.approach = '',
+    this.time = '',
+    this.space = '',
     this.pros = const [],
     this.cons = const [],
   });
+}
 
-  factory ApproachInfo.fromMap(Map<String, dynamic> m) {
-    return ApproachInfo(
-      name: m['name'] as String,
-      timeComplexity: m['time'] as String,
-      spaceComplexity: m['space'] as String,
-      explanation: m['explanation'] as String,
-      code: m['code'] as String?,
-      pros: (m['pros'] as List?)?.cast<String>() ?? const [],
-      cons: (m['cons'] as List?)?.cast<String>() ?? const [],
-    );
-  }
+class ComparisonTableInfo {
+  final List<String> columns;
+  final List<ComparisonRowInfo> rows;
+
+  const ComparisonTableInfo({this.columns = const ['Approach', 'Time', 'Space', 'Pros', 'Cons'], this.rows = const []});
+}
+
+class ApproachInfo {
+  final String key; // 'brute_force' | 'optimized' | 'optimal'
+  final String name;
+  final String? codingPattern;
+  final String timeComplexity;
+  final String? timeExplanation;
+  final String spaceComplexity;
+  final String? spaceExplanation;
+  final String explanation;
+  final String? trickSummary;
+  final List<String> trickDetails;
+  final List<String> pros;
+  final List<String> cons;
+  final String? code; // first implementation code snippet (fallback)
+  final Map<String, String> implementations; // language -> code
+
+  const ApproachInfo({
+    this.key = '',
+    this.name = '',
+    this.codingPattern,
+    this.timeComplexity = '',
+    this.timeExplanation,
+    this.spaceComplexity = '',
+    this.spaceExplanation,
+    this.explanation = '',
+    this.trickSummary,
+    this.trickDetails = const [],
+    this.pros = const [],
+    this.cons = const [],
+    this.code,
+    this.implementations = const {},
+  });
 }
 
 class ProblemContent {
   final int problemId;
+  final String statement;
+  final String inputFormat;
+  final String outputFormat;
+  final List<ConstraintInfo> constraints;
+  final List<String> notes;
+  final List<TestCaseInfo> testCases;
   final List<ApproachInfo> approaches;
+  final ComparisonTableInfo? comparisonTable;
 
-  ProblemContent({required this.problemId, required this.approaches});
-
-  factory ProblemContent.fromMap(Map<String, dynamic> m) {
-    final id = m['problem_id'] as int;
-    final steps = (m['approaches'] as List).map((e) => ApproachInfo.fromMap(e as Map<String, dynamic>)).toList();
-    return ProblemContent(problemId: id, approaches: steps);
-  }
+  const ProblemContent({
+    required this.problemId,
+    this.statement = '',
+    this.inputFormat = '',
+    this.outputFormat = '',
+    this.constraints = const [],
+    this.notes = const [],
+    this.testCases = const [],
+    this.approaches = const [],
+    this.comparisonTable,
+  });
 }

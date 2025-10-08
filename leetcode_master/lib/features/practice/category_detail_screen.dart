@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/category.dart';
 import '../../core/models/problem.dart';
 import '../../core/models/difficulty.dart';
-import '../../core/repositories/problem_repository.dart';
+import '../../core/repositories/problem_repository_isar.dart';
 
 final _problemRepoProvider = Provider((ref) => ProblemRepository());
 final _bookmarkRepoProvider = Provider((ref) => BookmarkRepository());
@@ -20,7 +20,15 @@ final _progressRepoProvider = Provider((ref) => ApproachProgressRepository());
 enum ListFilter { none, neetcode150, blind75 }
 
 // Sorting options for problem list
-enum SortOption { none, difficultyAsc, difficultyDesc, progressAsc, progressDesc, neetcodeFirst, blindFirst }
+enum SortOption {
+  none,
+  difficultyAsc,
+  difficultyDesc,
+  progressAsc,
+  progressDesc,
+  neetcodeFirst,
+  blindFirst,
+}
 
 // Persistence key for selected sort option
 const String _kSortPrefKey = 'category_selected_sort_option_v1';
@@ -33,23 +41,29 @@ const String _kFilterHideCompletedKey = 'category_filter_hide_completed_v1';
 const String _kSearchQueryKey = 'category_search_query_v1';
 bool _seededFilters = false;
 
-final selectedDifficultyProvider = StateProvider<Difficulty?>(
-  (ref) => null,
+final selectedDifficultyProvider = StateProvider<Difficulty?>((ref) => null);
+final selectedListProvider = StateProvider<ListFilter>(
+  (ref) => ListFilter.none,
 );
-final selectedListProvider = StateProvider<ListFilter>((ref) => ListFilter.none);
 final searchQueryProvider = StateProvider<String>((ref) => '');
 final bookmarkedOnlyProvider = StateProvider<bool>((ref) => false);
 final completedOnlyProvider = StateProvider<bool>((ref) => false);
 final hideCompletedProvider = StateProvider<bool>((ref) => false);
-final selectedSortProvider = StateProvider<SortOption>((ref) => SortOption.none);
-final problemsByCategoryProvider =
-    FutureProvider.family<List<Problem>, int>((ref, categoryId) async {
+final selectedSortProvider = StateProvider<SortOption>(
+  (ref) => SortOption.none,
+);
+final problemsByCategoryProvider = FutureProvider.family<List<Problem>, int>((
+  ref,
+  categoryId,
+) async {
   final repo = ref.watch(_problemRepoProvider);
   return repo.fetchProblemsByCategory(categoryId);
 });
 
-final bookmarkedIdsByCategoryProvider =
-    FutureProvider.family<Set<int>, int>((ref, categoryId) async {
+final bookmarkedIdsByCategoryProvider = FutureProvider.family<Set<int>, int>((
+  ref,
+  categoryId,
+) async {
   final repo = ref.watch(_problemRepoProvider);
   final bmRepo = ref.watch(_bookmarkRepoProvider);
   final problems = await repo.fetchProblemsByCategory(categoryId);
@@ -62,8 +76,10 @@ final bookmarkedIdsByCategoryProvider =
   return ids;
 });
 
-final completedIdsByCategoryProvider =
-    FutureProvider.family<Set<int>, int>((ref, categoryId) async {
+final completedIdsByCategoryProvider = FutureProvider.family<Set<int>, int>((
+  ref,
+  categoryId,
+) async {
   final repo = ref.watch(_problemRepoProvider);
   final progressRepo = ref.watch(_progressRepoProvider);
   final problems = await repo.fetchProblemsByCategory(categoryId);
@@ -80,69 +96,134 @@ final completedIdsByCategoryProvider =
 // Progress counts for sorting by progress (number of completed approaches per problem)
 final progressCountsByCategoryProvider =
     FutureProvider.family<Map<int, int>, int>((ref, categoryId) async {
-  final repo = ref.watch(_problemRepoProvider);
-  final progressRepo = ref.watch(_progressRepoProvider);
-  final problems = await repo.fetchProblemsByCategory(categoryId);
-  final map = <int, int>{};
-  for (final p in problems) {
-    final prog = await progressRepo.getProgress(p.id);
-    map[p.id] = prog.where((x) => x).length;
-  }
-  return map;
-});
+      final repo = ref.watch(_problemRepoProvider);
+      final progressRepo = ref.watch(_progressRepoProvider);
+      final problems = await repo.fetchProblemsByCategory(categoryId);
+      final map = <int, int>{};
+      for (final p in problems) {
+        final prog = await progressRepo.getProgress(p.id);
+        map[p.id] = prog.where((x) => x).length;
+      }
+      return map;
+    });
 
-final progressByProblemProvider =
-    FutureProvider.family<List<bool>, int>((ref, problemId) async {
+final progressByProblemProvider = FutureProvider.family<List<bool>, int>((
+  ref,
+  problemId,
+) async {
   final progressRepo = ref.watch(_progressRepoProvider);
   return progressRepo.getProgress(problemId);
 });
 
 // Bookmark status per problem (for inline toggles)
-final bookmarkByProblemProvider =
-    FutureProvider.family<bool, int>((ref, problemId) async {
+final bookmarkByProblemProvider = FutureProvider.family<bool, int>((
+  ref,
+  problemId,
+) async {
   final bmRepo = ref.watch(_bookmarkRepoProvider);
   return bmRepo.isBookmarked(problemId);
 });
 
-// Seeded membership sets for curated lists (expandable as data grows)
-const Set<int> _kNeetcode150Ids = {
-  1001, // Two Sum
-  1002, // Group Anagrams
-  1003, // Top K Frequent Elements
-  2001, // Valid Palindrome
-  2002, // Two Sum II - Input array is sorted
-  3001, // Valid Parentheses
-  3002, // Evaluate Reverse Polish Notation
-  4001, // Binary Search
-  4002, // Search in Rotated Sorted Array
-  5001, // Best Time to Buy and Sell Stock
-  6001, // Merge Two Sorted Lists
-  6002, // Linked List Cycle
-};
+// Curated queries backed by DB flags
+final neetcodeProblemsByCategoryProvider =
+    FutureProvider.family<List<Problem>, int>((ref, categoryId) async {
+      final repo = ref.watch(_problemRepoProvider);
+      return repo.fetchNeetcode150ByCategory(categoryId);
+    });
 
-const Set<int> _kBlind75Ids = {
-  1001, // Two Sum
-  1002, // Group Anagrams
-  1003, // Top K Frequent Elements
-  2001, // Valid Palindrome
-  2002, // Two Sum II - Input array is sorted
-  3001, // Valid Parentheses
-  4001, // Binary Search
-  4002, // Search in Rotated Sorted Array
-  5001, // Best Time to Buy and Sell Stock
-  6001, // Merge Two Sorted Lists
-  6002, // Linked List Cycle
-};
+final blindProblemsByCategoryProvider =
+    FutureProvider.family<List<Problem>, int>((ref, categoryId) async {
+      final repo = ref.watch(_problemRepoProvider);
+      return repo.fetchBlind75ByCategory(categoryId);
+    });
 
-final listMembershipProvider = Provider<Set<int>>((ref) {
-  switch (ref.watch(selectedListProvider)) {
-    case ListFilter.neetcode150:
-      return _kNeetcode150Ids;
-    case ListFilter.blind75:
-      return _kBlind75Ids;
-    case ListFilter.none:
-      return const <int>{};
-  }
+// Base problems respecting curated selection
+final visibleProblemsByCategoryProvider =
+    FutureProvider.family<List<Problem>, int>((ref, categoryId) async {
+      final selectedList = ref.watch(selectedListProvider);
+      final repo = ref.watch(_problemRepoProvider);
+      switch (selectedList) {
+        case ListFilter.neetcode150:
+          return repo.fetchNeetcode150ByCategory(categoryId);
+        case ListFilter.blind75:
+          return repo.fetchBlind75ByCategory(categoryId);
+        case ListFilter.none:
+          return repo.fetchProblemsByCategory(categoryId);
+      }
+    });
+
+// Apply search and toggles (bookmark/completed/hide), but NOT difficulty
+final preDifficultyFilteredProblemsProvider =
+    FutureProvider.family<List<Problem>, int>((ref, categoryId) async {
+      final base = await ref.watch(
+        visibleProblemsByCategoryProvider(categoryId).future,
+      );
+      final bookmarkedOnly = ref.watch(bookmarkedOnlyProvider);
+      final completedOnly = ref.watch(completedOnlyProvider);
+      final hideCompleted = ref.watch(hideCompletedProvider);
+
+      final bookmarkedIds = await ref.watch(
+        bookmarkedIdsByCategoryProvider(categoryId).future,
+      );
+      final completedIds = await ref.watch(
+        completedIdsByCategoryProvider(categoryId).future,
+      );
+
+      var filtered = [...base];
+      if (bookmarkedOnly) {
+        filtered = filtered.where((p) => bookmarkedIds.contains(p.id)).toList();
+      }
+      if (completedOnly) {
+        filtered = filtered.where((p) => completedIds.contains(p.id)).toList();
+      }
+      if (hideCompleted) {
+        filtered = filtered.where((p) => !completedIds.contains(p.id)).toList();
+      }
+      return filtered;
+    });
+
+// Apply selected difficulty on top of curated selection and toggles
+final difficultyAppliedProblemsProvider =
+    FutureProvider.family<List<Problem>, int>((ref, categoryId) async {
+      final list = await ref
+          .watch(preDifficultyFilteredProblemsProvider(categoryId).future);
+      final selected = ref.watch(selectedDifficultyProvider);
+      if (selected == null) return list;
+      return list.where((p) => p.difficulty == selected).toList();
+    });
+
+// Counts reflecting current curated selection, search, and toggles
+final difficultyCountsProvider =
+    FutureProvider.family<Map<Difficulty, int>, int>((ref, categoryId) async {
+      final list = await ref.watch(
+        preDifficultyFilteredProblemsProvider(categoryId).future,
+      );
+      return {
+        Difficulty.easy: list
+            .where((p) => p.difficulty == Difficulty.easy)
+            .length,
+        Difficulty.medium: list
+            .where((p) => p.difficulty == Difficulty.medium)
+            .length,
+        Difficulty.hard: list
+            .where((p) => p.difficulty == Difficulty.hard)
+            .length,
+      };
+    });
+
+final curatedCountsProvider = FutureProvider.family<Map<ListFilter, int>, int>((
+  ref,
+  categoryId,
+) async {
+  final list = await ref.watch(
+    preDifficultyFilteredProblemsProvider(categoryId).future,
+  );
+  final neetcodeCount = list.where((p) => p.isNeetcode150).length;
+  final blindCount = list.where((p) => p.isBlind75).length;
+  return {
+    ListFilter.neetcode150: neetcodeCount,
+    ListFilter.blind75: blindCount,
+  };
 });
 
 class CategoryDetailScreen extends ConsumerWidget {
@@ -184,7 +265,10 @@ class CategoryDetailScreen extends ConsumerWidget {
       await prefs.setString(_kSearchQueryKey, next);
     });
 
-    final problemsAsync = ref.watch(problemsByCategoryProvider(category.id));
+    final selectedList = ref.watch(selectedListProvider);
+    final problemsAsync = ref.watch(
+      visibleProblemsByCategoryProvider(category.id),
+    );
     return Scaffold(
       appBar: AppBar(title: Text(category.name)),
       body: problemsAsync.when(
@@ -194,59 +278,40 @@ class CategoryDetailScreen extends ConsumerWidget {
           if (problems.isEmpty) {
             return const Center(child: Text('No problems available'));
           }
-          final selected = ref.watch(selectedDifficultyProvider);
           final selectedList = ref.watch(selectedListProvider);
-          final query = ref.watch(searchQueryProvider);
           final bookmarkedOnly = ref.watch(bookmarkedOnlyProvider);
           final completedOnly = ref.watch(completedOnlyProvider);
           final hideCompleted = ref.watch(hideCompletedProvider);
           final sortOption = ref.watch(selectedSortProvider);
-          final bookmarkedIdsAsync = ref.watch(bookmarkedIdsByCategoryProvider(category.id));
-          final completedIdsAsync = ref.watch(completedIdsByCategoryProvider(category.id));
-          final progressCountsAsync = ref.watch(progressCountsByCategoryProvider(category.id));
-          final filtered = problems.where((p) {
-            final matchesDiff = selected == null || p.difficulty == selected;
-            final matchesQuery = query.isEmpty || p.title.toLowerCase().contains(query.toLowerCase());
-            return matchesDiff && matchesQuery;
-          }).toList();
-
-          // Apply curated list filter if selected
-          if (selectedList != ListFilter.none) {
-            final membership = ref.watch(listMembershipProvider);
-            filtered.removeWhere((p) => !membership.contains(p.id));
-          }
-
-          final bookmarkedIds = bookmarkedIdsAsync.asData?.value;
-          final finalList = bookmarkedOnly && bookmarkedIds != null
-              ? filtered.where((p) => bookmarkedIds.contains(p.id)).toList()
-              : filtered;
-
-          final completedIds = completedIdsAsync.asData?.value;
-          final finalList2 = completedOnly && completedIds != null
-              ? finalList.where((p) => completedIds.contains(p.id)).toList()
-              : finalList;
-
-          // Hide completed problems if toggled
-          final finalList3 = hideCompleted && completedIds != null
-              ? finalList2.where((p) => !completedIds.contains(p.id)).toList()
-              : finalList2;
+          final progressCountsAsync = ref.watch(
+            progressCountsByCategoryProvider(category.id),
+          );
+          // Base list is curated and toggle-filtered; now apply difficulty
+          final filteredListAsync = ref.watch(
+            difficultyAppliedProblemsProvider(category.id),
+          );
+          final finalList3 = filteredListAsync.asData?.value ?? problems;
 
           // Apply sorting
           List<Problem> sortedList = [...finalList3];
           if (sortOption != SortOption.none) {
             final progressCounts = progressCountsAsync.asData?.value;
             int rank(Difficulty d) => switch (d) {
-                  Difficulty.easy => 0,
-                  Difficulty.medium => 1,
-                  Difficulty.hard => 2,
-                };
-            int cmpDifficulty(Problem a, Problem b) => rank(a.difficulty).compareTo(rank(b.difficulty));
+              Difficulty.easy => 0,
+              Difficulty.medium => 1,
+              Difficulty.hard => 2,
+            };
+            int cmpDifficulty(Problem a, Problem b) =>
+                rank(a.difficulty).compareTo(rank(b.difficulty));
             int cmpProgress(Problem a, Problem b) {
               final av = progressCounts?[a.id] ?? 0;
               final bv = progressCounts?[b.id] ?? 0;
               return av.compareTo(bv);
             }
-            bool needProgressData = sortOption == SortOption.progressAsc || sortOption == SortOption.progressDesc;
+
+            bool needProgressData =
+                sortOption == SortOption.progressAsc ||
+                sortOption == SortOption.progressDesc;
             if (needProgressData && progressCounts == null) {
               // defer rendering until progressCounts are loaded (spinner below)
             } else {
@@ -265,16 +330,16 @@ class CategoryDetailScreen extends ConsumerWidget {
                   break;
                 case SortOption.neetcodeFirst:
                   sortedList.sort((a, b) {
-                    final ai = _kNeetcode150Ids.contains(a.id) ? 0 : 1;
-                    final bi = _kNeetcode150Ids.contains(b.id) ? 0 : 1;
+                    final ai = a.isNeetcode150 ? 0 : 1;
+                    final bi = b.isNeetcode150 ? 0 : 1;
                     final pri = ai.compareTo(bi);
                     return pri != 0 ? pri : cmpDifficulty(a, b);
                   });
                   break;
                 case SortOption.blindFirst:
                   sortedList.sort((a, b) {
-                    final ai = _kBlind75Ids.contains(a.id) ? 0 : 1;
-                    final bi = _kBlind75Ids.contains(b.id) ? 0 : 1;
+                    final ai = a.isBlind75 ? 0 : 1;
+                    final bi = b.isBlind75 ? 0 : 1;
                     final pri = ai.compareTo(bi);
                     return pri != 0 ? pri : cmpDifficulty(a, b);
                   });
@@ -285,11 +350,25 @@ class CategoryDetailScreen extends ConsumerWidget {
             }
           }
 
-          final easyCount = problems.where((p) => p.difficulty == Difficulty.easy).length;
-          final mediumCount = problems.where((p) => p.difficulty == Difficulty.medium).length;
-          final hardCount = problems.where((p) => p.difficulty == Difficulty.hard).length;
-          final neetcodeCount = problems.where((p) => _kNeetcode150Ids.contains(p.id)).length;
-          final blindCount = problems.where((p) => _kBlind75Ids.contains(p.id)).length;
+          final diffCountsAsync = ref.watch(
+            difficultyCountsProvider(category.id),
+          );
+          final curCountsAsync = ref.watch(curatedCountsProvider(category.id));
+          final easyCount =
+              diffCountsAsync.asData?.value[Difficulty.easy] ??
+              problems.where((p) => p.difficulty == Difficulty.easy).length;
+          final mediumCount =
+              diffCountsAsync.asData?.value[Difficulty.medium] ??
+              problems.where((p) => p.difficulty == Difficulty.medium).length;
+          final hardCount =
+              diffCountsAsync.asData?.value[Difficulty.hard] ??
+              problems.where((p) => p.difficulty == Difficulty.hard).length;
+          final neetcodeCount =
+              curCountsAsync.asData?.value[ListFilter.neetcode150] ??
+              problems.where((p) => p.isNeetcode150).length;
+          final blindCount =
+              curCountsAsync.asData?.value[ListFilter.blind75] ??
+              problems.where((p) => p.isBlind75).length;
 
           return Padding(
             padding: const EdgeInsets.all(12),
@@ -303,40 +382,66 @@ class CategoryDetailScreen extends ConsumerWidget {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                  children: [
-                    _filterChip(ref, label: 'All', value: null),
-                    const SizedBox(width: 8),
-                    _filterChip(ref, label: 'Easy ($easyCount)', value: Difficulty.easy),
-                    const SizedBox(width: 8),
-                    _filterChip(ref, label: 'Medium ($mediumCount)', value: Difficulty.medium),
-                    const SizedBox(width: 8),
-                    _filterChip(ref, label: 'Hard ($hardCount)', value: Difficulty.hard),
-                    const SizedBox(width: 12),
-                    _listFilterChip(ref, label: 'Neetcode 150 ($neetcodeCount)', value: ListFilter.neetcode150),
-                    const SizedBox(width: 8),
-                    _listFilterChip(ref, label: 'Blind 75 ($blindCount)', value: ListFilter.blind75),
-                    const SizedBox(width: 8),
-                    _sortMenu(ref),
-                    const SizedBox(width: 12),
-                    FilterChip(
-                      label: const Text('Bookmarked only'),
-                      selected: bookmarkedOnly,
-                      onSelected: (_) => ref.read(bookmarkedOnlyProvider.notifier).state = !bookmarkedOnly,
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Completed only'),
-                      selected: completedOnly,
-                      onSelected: (_) => ref.read(completedOnlyProvider.notifier).state = !completedOnly,
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Hide completed'),
-                      selected: hideCompleted,
-                      onSelected: (_) => ref.read(hideCompletedProvider.notifier).state = !hideCompleted,
-                    ),
-                  ],
-                ),
+                    children: [
+                      _filterChip(ref, label: 'All', value: null),
+                      const SizedBox(width: 8),
+                      _filterChip(
+                        ref,
+                        label: 'Easy ($easyCount)',
+                        value: Difficulty.easy,
+                      ),
+                      const SizedBox(width: 8),
+                      _filterChip(
+                        ref,
+                        label: 'Medium ($mediumCount)',
+                        value: Difficulty.medium,
+                      ),
+                      const SizedBox(width: 8),
+                      _filterChip(
+                        ref,
+                        label: 'Hard ($hardCount)',
+                        value: Difficulty.hard,
+                      ),
+                      const SizedBox(width: 12),
+                      _listFilterChip(
+                        ref,
+                        label: 'Neetcode 150 ($neetcodeCount)',
+                        value: ListFilter.neetcode150,
+                      ),
+                      const SizedBox(width: 8),
+                      _listFilterChip(
+                        ref,
+                        label: 'Blind 75 ($blindCount)',
+                        value: ListFilter.blind75,
+                      ),
+                      const SizedBox(width: 8),
+                      _sortMenu(ref),
+                      const SizedBox(width: 12),
+                      FilterChip(
+                        label: const Text('Bookmarked only'),
+                        selected: bookmarkedOnly,
+                        onSelected: (_) =>
+                            ref.read(bookmarkedOnlyProvider.notifier).state =
+                                !bookmarkedOnly,
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Completed only'),
+                        selected: completedOnly,
+                        onSelected: (_) =>
+                            ref.read(completedOnlyProvider.notifier).state =
+                                !completedOnly,
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Hide completed'),
+                        selected: hideCompleted,
+                        onSelected: (_) =>
+                            ref.read(hideCompletedProvider.notifier).state =
+                                !hideCompleted,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -345,100 +450,184 @@ class CategoryDetailScreen extends ConsumerWidget {
                     prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
+                  onChanged: (v) =>
+                      ref.read(searchQueryProvider.notifier).state = v,
                 ),
                 const SizedBox(height: 12),
-                _summaryHeader(filteredCount: filtered.length, totalCount: problems.length, totalMinutes: _sumMinutes(filtered)),
+                _summaryHeader(
+                  filteredCount: finalList3.length,
+                  totalCount: problems.length,
+                  totalMinutes: _sumMinutes(finalList3),
+                ),
                 const SizedBox(height: 12),
-                if ((bookmarkedOnly && bookmarkedIds == null) ||
-                    (completedOnly && completedIds == null) ||
-                    ((sortOption == SortOption.progressAsc || sortOption == SortOption.progressDesc) &&
+                if (((bookmarkedOnly || completedOnly || hideCompleted) &&
+                        filteredListAsync.asData == null) ||
+                    ((sortOption == SortOption.progressAsc ||
+                            sortOption == SortOption.progressDesc) &&
                         progressCountsAsync.asData == null))
-                  const Expanded(child: Center(child: CircularProgressIndicator()))
+                  const Expanded(
+                    child: Center(child: CircularProgressIndicator()),
+                  )
                 else
                   Expanded(
-                  child: ListView.separated(
-                    itemCount: sortedList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final p = sortedList[index];
-                      return Card(
-                        child: ListTile(
-                          title: Text(p.title),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(_difficultyLabel(p.difficulty)),
-                              const SizedBox(height: 4),
-                              Consumer(
-                                builder: (context, ref, _) {
-                                  final progressAsync = ref.watch(progressByProblemProvider(p.id));
-                                  return progressAsync.when(
-                                    loading: () => const LinearProgressIndicator(minHeight: 4),
-                                    error: (e, st) => const Text('Progress unavailable', style: TextStyle(color: Colors.black54)),
-                                    data: (prog) {
-                                      final done = prog.where((x) => x).length;
-                                      return Text('Progress: $done/3', style: const TextStyle(color: Colors.black54));
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Bookmark toggle
-                              Consumer(builder: (context, ref, _) {
-                                final bmAsync = ref.watch(bookmarkByProblemProvider(p.id));
-                                final isBm = bmAsync.asData?.value ?? false;
-                                return IconButton(
-                                  tooltip: isBm ? 'Remove bookmark' : 'Add bookmark',
-                                  icon: Icon(isBm ? Icons.bookmark : Icons.bookmark_border),
-                                  onPressed: () async {
-                                    final repo = ref.read(_bookmarkRepoProvider);
-                                    await repo.setBookmarked(p.id, !isBm);
-                                    ref.refresh(bookmarkByProblemProvider(p.id));
-                                    ref.refresh(bookmarkedIdsByCategoryProvider(category.id));
+                    child: ListView.separated(
+                      itemCount: sortedList.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final p = sortedList[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(p.title),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(_difficultyLabel(p.difficulty)),
+                                const SizedBox(height: 4),
+                                Consumer(
+                                  builder: (context, ref, _) {
+                                    final progressAsync = ref.watch(
+                                      progressByProblemProvider(p.id),
+                                    );
+                                    return progressAsync.when(
+                                      loading: () =>
+                                          const LinearProgressIndicator(
+                                            minHeight: 4,
+                                          ),
+                                      error: (e, st) => const Text(
+                                        'Progress unavailable',
+                                        style: TextStyle(color: Colors.black54),
+                                      ),
+                                      data: (prog) {
+                                        final done = prog
+                                            .where((x) => x)
+                                            .length;
+                                        return Text(
+                                          'Progress: $done/3',
+                                          style: const TextStyle(
+                                            color: Colors.black54,
+                                          ),
+                                        );
+                                      },
+                                    );
                                   },
-                                );
-                              }),
-                              const SizedBox(width: 4),
-                              // Completed toggle (all three approaches)
-                              Consumer(builder: (context, ref, _) {
-                                final progAsync = ref.watch(progressByProblemProvider(p.id));
-                                final doneCount = progAsync.asData?.value.where((x) => x).length ?? 0;
-                                final isComplete = doneCount == 3;
-                                return IconButton(
-                                  tooltip: isComplete ? 'Mark as not completed' : 'Mark as completed',
-                                  icon: Icon(isComplete ? Icons.check_circle : Icons.radio_button_unchecked, color: isComplete ? Colors.green : null),
-                                  onPressed: () async {
-                                    final repo = ref.read(_progressRepoProvider);
-                                    await repo.setProgress(p.id, isComplete ? [false, false, false] : [true, true, true]);
-                                    ref.refresh(progressByProblemProvider(p.id));
-                                    ref.refresh(completedIdsByCategoryProvider(category.id));
-                                    ref.refresh(progressCountsByCategoryProvider(category.id));
+                                ),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Bookmark toggle
+                                Consumer(
+                                  builder: (context, ref, _) {
+                                    final bmAsync = ref.watch(
+                                      bookmarkByProblemProvider(p.id),
+                                    );
+                                    final isBm = bmAsync.asData?.value ?? false;
+                                    return IconButton(
+                                      tooltip: isBm
+                                          ? 'Remove bookmark'
+                                          : 'Add bookmark',
+                                      icon: Icon(
+                                        isBm
+                                            ? Icons.bookmark
+                                            : Icons.bookmark_border,
+                                      ),
+                                      onPressed: () async {
+                                        final repo = ref.read(
+                                          _bookmarkRepoProvider,
+                                        );
+                                        await repo.setBookmarked(p.id, !isBm);
+                                        ref.refresh(
+                                          bookmarkByProblemProvider(p.id),
+                                        );
+                                        ref.refresh(
+                                          bookmarkedIdsByCategoryProvider(
+                                            category.id,
+                                          ),
+                                        );
+                                      },
+                                    );
                                   },
+                                ),
+                                const SizedBox(width: 4),
+                                // Completed toggle (all three approaches)
+                                Consumer(
+                                  builder: (context, ref, _) {
+                                    final progAsync = ref.watch(
+                                      progressByProblemProvider(p.id),
+                                    );
+                                    final doneCount =
+                                        progAsync.asData?.value
+                                            .where((x) => x)
+                                            .length ??
+                                        0;
+                                    final isComplete = doneCount == 3;
+                                    return IconButton(
+                                      tooltip: isComplete
+                                          ? 'Mark as not completed'
+                                          : 'Mark as completed',
+                                      icon: Icon(
+                                        isComplete
+                                            ? Icons.check_circle
+                                            : Icons.radio_button_unchecked,
+                                        color: isComplete ? Colors.green : null,
+                                      ),
+                                      onPressed: () async {
+                                        final repo = ref.read(
+                                          _progressRepoProvider,
+                                        );
+                                        await repo.setProgress(
+                                          p.id,
+                                          isComplete
+                                              ? [false, false, false]
+                                              : [true, true, true],
+                                        );
+                                        ref.refresh(
+                                          progressByProblemProvider(p.id),
+                                        );
+                                        ref.refresh(
+                                          completedIdsByCategoryProvider(
+                                            category.id,
+                                          ),
+                                        );
+                                        ref.refresh(
+                                          progressCountsByCategoryProvider(
+                                            category.id,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 4),
+                                p.premium
+                                    ? const Icon(
+                                        Icons.lock,
+                                        color: Colors.black45,
+                                      )
+                                    : const Icon(Icons.chevron_right),
+                              ],
+                            ),
+                            onTap: () {
+                              if (p.premium) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Premium problem. Upgrade to unlock.',
+                                    ),
+                                  ),
                                 );
-                              }),
-                              const SizedBox(width: 4),
-                              p.premium ? const Icon(Icons.lock, color: Colors.black45) : const Icon(Icons.chevron_right),
-                            ],
+                                return;
+                              }
+                              GoRouter.of(
+                                context,
+                              ).go('/practice/problem/${p.id}', extra: p);
+                            },
                           ),
-                          onTap: () {
-                            if (p.premium) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Premium problem. Upgrade to unlock.')),
-                              );
-                              return;
-                            }
-                            GoRouter.of(context).go('/practice/problem/${p.id}', extra: p);
-                          },
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
               ],
             ),
           );
@@ -459,17 +648,26 @@ class CategoryDetailScreen extends ConsumerWidget {
     return 'Unknown';
   }
 
-  Widget _filterChip(WidgetRef ref, {required String label, required Difficulty? value}) {
+  Widget _filterChip(
+    WidgetRef ref, {
+    required String label,
+    required Difficulty? value,
+  }) {
     final selected = ref.watch(selectedDifficultyProvider);
     final isSelected = selected == value;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      onSelected: (_) => ref.read(selectedDifficultyProvider.notifier).state = value,
+      onSelected: (_) =>
+          ref.read(selectedDifficultyProvider.notifier).state = value,
     );
   }
 
-  Widget _listFilterChip(WidgetRef ref, {required String label, required ListFilter value}) {
+  Widget _listFilterChip(
+    WidgetRef ref, {
+    required String label,
+    required ListFilter value,
+  }) {
     final selected = ref.watch(selectedListProvider);
     final isSelected = selected == value;
     return ChoiceChip(
@@ -477,14 +675,21 @@ class CategoryDetailScreen extends ConsumerWidget {
       selected: isSelected,
       onSelected: (_) {
         final current = ref.read(selectedListProvider);
-        ref.read(selectedListProvider.notifier).state = current == value ? ListFilter.none : value;
+        ref.read(selectedListProvider.notifier).state = current == value
+            ? ListFilter.none
+            : value;
       },
     );
   }
 
-  int _sumMinutes(List<Problem> problems) => problems.fold(0, (sum, p) => sum + p.estimatedMinutes);
+  int _sumMinutes(List<Problem> problems) =>
+      problems.fold(0, (sum, p) => sum + p.estimatedMinutes);
 
-  Widget _summaryHeader({required int filteredCount, required int totalCount, required int totalMinutes}) {
+  Widget _summaryHeader({
+    required int filteredCount,
+    required int totalCount,
+    required int totalMinutes,
+  }) {
     String timeLabel;
     if (totalMinutes >= 60) {
       final hours = (totalMinutes / 60).floor();
@@ -538,13 +743,34 @@ class CategoryDetailScreen extends ConsumerWidget {
       tooltip: 'Sort problems',
       onSelected: (opt) => ref.read(selectedSortProvider.notifier).state = opt,
       itemBuilder: (context) => [
-        const PopupMenuItem(value: SortOption.none, child: Text('Default order')),
-        const PopupMenuItem(value: SortOption.difficultyAsc, child: Text('Difficulty ↑')),
-        const PopupMenuItem(value: SortOption.difficultyDesc, child: Text('Difficulty ↓')),
-        const PopupMenuItem(value: SortOption.progressAsc, child: Text('Progress ↑ (least done first)')),
-        const PopupMenuItem(value: SortOption.progressDesc, child: Text('Progress ↓ (most done first)')),
-        const PopupMenuItem(value: SortOption.neetcodeFirst, child: Text('Neetcode 150 first')),
-        const PopupMenuItem(value: SortOption.blindFirst, child: Text('Blind 75 first')),
+        const PopupMenuItem(
+          value: SortOption.none,
+          child: Text('Default order'),
+        ),
+        const PopupMenuItem(
+          value: SortOption.difficultyAsc,
+          child: Text('Difficulty ↑'),
+        ),
+        const PopupMenuItem(
+          value: SortOption.difficultyDesc,
+          child: Text('Difficulty ↓'),
+        ),
+        const PopupMenuItem(
+          value: SortOption.progressAsc,
+          child: Text('Progress ↑ (least done first)'),
+        ),
+        const PopupMenuItem(
+          value: SortOption.progressDesc,
+          child: Text('Progress ↓ (most done first)'),
+        ),
+        const PopupMenuItem(
+          value: SortOption.neetcodeFirst,
+          child: Text('Neetcode 150 first'),
+        ),
+        const PopupMenuItem(
+          value: SortOption.blindFirst,
+          child: Text('Blind 75 first'),
+        ),
       ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -564,7 +790,10 @@ class CategoryDetailScreen extends ConsumerWidget {
       final saved = prefs.getString(_kSortPrefKey);
       if (saved != null && saved.isNotEmpty) {
         final current = ref.read(selectedSortProvider);
-        final loaded = SortOption.values.firstWhere((e) => e.name == saved, orElse: () => SortOption.none);
+        final loaded = SortOption.values.firstWhere(
+          (e) => e.name == saved,
+          orElse: () => SortOption.none,
+        );
         if (current != loaded) {
           ref.read(selectedSortProvider.notifier).state = loaded;
         }
