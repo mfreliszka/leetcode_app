@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Riverpod 3.0 legacy providers
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/darcula.dart';
+import 'package:flutter_highlight/themes/idea.dart';
 
 import '../../core/models/problem.dart';
 import '../../core/models/difficulty.dart';
@@ -19,29 +22,42 @@ class ProblemDetailScreen extends ConsumerWidget {
   final Problem problem;
 
   // Track approach progress: [bruteForce, optimized, optimal]
-  static final stepsProgressProvider = StateProvider.family<List<bool>, int>((ref, problemId) => [false, false, false]);
-  static final _progressRepoProvider = Provider((ref) => ApproachProgressRepository());
-  static final stepsProgressLoaderProvider = FutureProvider.family<List<bool>, int>((ref, problemId) async {
-    final repo = ref.watch(_progressRepoProvider);
-    return repo.getProgress(problemId);
-  });
+  static final stepsProgressProvider = StateProvider.family<List<bool>, int>(
+    (ref, problemId) => [false, false, false],
+  );
+  static final _progressRepoProvider = Provider(
+    (ref) => ApproachProgressRepository(),
+  );
+  static final stepsProgressLoaderProvider =
+      FutureProvider.family<List<bool>, int>((ref, problemId) async {
+        final repo = ref.watch(_progressRepoProvider);
+        return repo.getProgress(problemId);
+      });
 
   // Bookmark persistence
   static final _bookmarkRepoProvider = Provider((ref) => BookmarkRepository());
-  static final bookmarkLoaderProvider = FutureProvider.family<bool, int>((ref, problemId) async {
+  static final bookmarkLoaderProvider = FutureProvider.family<bool, int>((
+    ref,
+    problemId,
+  ) async {
     final repo = ref.watch(_bookmarkRepoProvider);
     return repo.isBookmarked(problemId);
   });
-  static final bookmarkStateProvider = StateProvider.family<bool, int>((ref, problemId) => false);
+  static final bookmarkStateProvider = StateProvider.family<bool, int>(
+    (ref, problemId) => false,
+  );
 
   // Notes removed in Isar-only flow; no local notes persistence
 
   // Problem content (approaches) loader
-  static final _contentRepoProvider = Provider((ref) => ProblemContentRepository());
-  static final problemContentProvider = FutureProvider.family<ProblemContent?, int>((ref, problemId) async {
-    final repo = ref.watch(_contentRepoProvider);
-    return repo.fetchByProblemId(problemId);
-  });
+  static final _contentRepoProvider = Provider(
+    (ref) => ProblemContentRepository(),
+  );
+  static final problemContentProvider =
+      FutureProvider.family<ProblemContent?, int>((ref, problemId) async {
+        final repo = ref.watch(_contentRepoProvider);
+        return repo.fetchByProblemId(problemId);
+      });
 
   // Default language setting is provided globally in settings_service.dart
 
@@ -59,26 +75,22 @@ class ProblemDetailScreen extends ConsumerWidget {
                 final bookmarked = ref.watch(bookmarkStateProvider(problem.id));
                 return IconButton(
                   tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
-                  icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_outline),
+                  icon: Icon(
+                    bookmarked ? Icons.bookmark : Icons.bookmark_outline,
+                  ),
                   onPressed: () async {
                     final next = !bookmarked;
-                    ref.read(bookmarkStateProvider(problem.id).notifier).state = next;
-                    await ref.read(_bookmarkRepoProvider).setBookmarked(problem.id, next);
+                    ref.read(bookmarkStateProvider(problem.id).notifier).state =
+                        next;
+                    await ref
+                        .read(_bookmarkRepoProvider)
+                        .setBookmarked(problem.id, next);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(next ? 'Bookmarked' : 'Bookmark removed')),
+                      SnackBar(
+                        content: Text(next ? 'Bookmarked' : 'Bookmark removed'),
+                      ),
                     );
                   },
-                );
-              },
-            ),
-            IconButton(
-              tooltip: 'Copy problem link',
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () async {
-                final link = '/practice/problem/${problem.id}';
-                await Clipboard.setData(ClipboardData(text: link));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Link copied: $link')),
                 );
               },
             ),
@@ -130,9 +142,7 @@ class ProblemDetailScreen extends ConsumerWidget {
           children: [
             Text('Progress: $completed/3'),
             const SizedBox(width: 12),
-            Expanded(
-              child: LinearProgressIndicator(value: pct, minHeight: 6),
-            ),
+            Expanded(child: LinearProgressIndicator(value: pct, minHeight: 6)),
           ],
         ),
         const SizedBox(height: 12),
@@ -146,7 +156,8 @@ class ProblemDetailScreen extends ConsumerWidget {
                 onChanged: (v) {
                   final current = [...progress];
                   current[0] = v ?? false;
-                  ref.read(stepsProgressProvider(problem.id).notifier).state = current;
+                  ref.read(stepsProgressProvider(problem.id).notifier).state =
+                      current;
                   _persist(ref, current);
                 },
               ),
@@ -157,7 +168,8 @@ class ProblemDetailScreen extends ConsumerWidget {
                 onChanged: (v) {
                   final current = [...progress];
                   current[1] = v ?? false;
-                  ref.read(stepsProgressProvider(problem.id).notifier).state = current;
+                  ref.read(stepsProgressProvider(problem.id).notifier).state =
+                      current;
                   _persist(ref, current);
                 },
               ),
@@ -168,7 +180,8 @@ class ProblemDetailScreen extends ConsumerWidget {
                 onChanged: (v) {
                   final current = [...progress];
                   current[2] = v ?? false;
-                  ref.read(stepsProgressProvider(problem.id).notifier).state = current;
+                  ref.read(stepsProgressProvider(problem.id).notifier).state =
+                      current;
                   _persist(ref, current);
                 },
               ),
@@ -229,7 +242,11 @@ class ProblemDetailScreen extends ConsumerWidget {
         label = 'Hard';
         break;
     }
-    return Chip(label: Text(label), backgroundColor: c.withOpacity(0.15), side: BorderSide(color: c));
+    return Chip(
+      label: Text(label),
+      backgroundColor: c.withOpacity(0.15),
+      side: BorderSide(color: c),
+    );
   }
 
   Widget _timeChip(String label) {
@@ -245,10 +262,18 @@ class ProblemDetailScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Reset progress?'),
-        content: const Text('This will clear approach checkboxes and remove bookmark for this problem.'),
+        content: const Text(
+          'This will clear approach checkboxes and remove bookmark for this problem.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Reset')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reset'),
+          ),
         ],
       ),
     );
@@ -267,17 +292,22 @@ class ProblemDetailScreen extends ConsumerWidget {
     ref.read(bookmarkStateProvider(problem.id).notifier).state = false;
     await ref.read(_bookmarkRepoProvider).setBookmarked(problem.id, false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Progress reset')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Progress reset')));
   }
 
   // Notes and legacy steps list removed; approaches are shown per-tab
 
-  Widget _approachCard(BuildContext context, ApproachInfo a, {String? preferredLanguage}) {
+  Widget _approachCard(
+    BuildContext context,
+    ApproachInfo a, {
+    String? preferredLanguage,
+  }) {
     String? usedLanguage;
     final codeToShow = () {
-      if (preferredLanguage != null && a.implementations.containsKey(preferredLanguage)) {
+      if (preferredLanguage != null &&
+          a.implementations.containsKey(preferredLanguage)) {
         usedLanguage = preferredLanguage;
         return a.implementations[preferredLanguage];
       }
@@ -308,37 +338,158 @@ class ProblemDetailScreen extends ConsumerWidget {
             Text(a.explanation),
             if (a.pros.isNotEmpty) ...[
               const SizedBox(height: 8),
-              const Text('Pros:', style: TextStyle(fontWeight: FontWeight.w600)),
-              for (final p in a.pros) Row(children: [const Text('• '), Expanded(child: Text(p))]),
+              const Text(
+                'Pros:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              for (final p in a.pros)
+                Row(
+                  children: [
+                    const Text('• '),
+                    Expanded(child: Text(p)),
+                  ],
+                ),
             ],
             if (a.cons.isNotEmpty) ...[
               const SizedBox(height: 8),
-              const Text('Cons:', style: TextStyle(fontWeight: FontWeight.w600)),
-              for (final c in a.cons) Row(children: [const Text('• '), Expanded(child: Text(c))]),
+              const Text(
+                'Cons:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              for (final c in a.cons)
+                Row(
+                  children: [
+                    const Text('• '),
+                    Expanded(child: Text(c)),
+                  ],
+                ),
             ],
             if (codeToShow != null && codeToShow.trim().isNotEmpty) ...[
               const SizedBox(height: 12),
-              if (usedLanguage != null) Text('Language: $usedLanguage', style: const TextStyle(color: Colors.black54)),
-              if (preferredLanguage != null && usedLanguage != null && usedLanguage != preferredLanguage)
+              if (usedLanguage != null)
+                Text(
+                  'Language: $usedLanguage',
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              if (preferredLanguage != null &&
+                  usedLanguage != null &&
+                  usedLanguage != preferredLanguage)
                 Text(
                   'No snippet for "$preferredLanguage"; showing "$usedLanguage"',
                   style: const TextStyle(color: Colors.black45, fontSize: 12),
                 ),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: SelectableText(codeToShow, style: const TextStyle(fontFamily: 'monospace')),
+              codeBlock(
+                context,
+                codeToShow,
+                language: hlLanguageFor(usedLanguage),
               ),
             ],
           ],
         ),
       ),
     );
+  }
+
+  // (moved to top-level below)
+}
+
+// Top-level helpers: syntax-highlighted code blocks and language mapping
+Widget codeBlock(
+  BuildContext context,
+  String code, {
+  String language = 'plaintext',
+}) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final theme = isDark ? darculaTheme : ideaTheme;
+  final borderColor = isDark ? Colors.white24 : Colors.grey.shade300;
+  final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100;
+  final gutterColor = isDark ? Colors.white70 : Colors.black54;
+  final lines = code.split('\n');
+  return Container(
+    width: double.infinity,
+    decoration: BoxDecoration(
+      color: bgColor,
+      border: Border.all(color: borderColor),
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < lines.length; i++) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 36,
+                  child: Text(
+                    '${i + 1}',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: gutterColor,
+                      fontFamily: 'monaco',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: HighlightView(
+                    lines[i].isEmpty ? ' ' : lines[i],
+                    language: language,
+                    theme: theme,
+                    padding: EdgeInsets.zero,
+                    textStyle: const TextStyle(
+                      fontFamily: 'monaco',
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
+String hlLanguageFor(String? lang) {
+  if (lang == null) return 'plaintext';
+  final l = lang.toLowerCase();
+  switch (l) {
+    case 'dart':
+      return 'dart';
+    case 'python':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'cpp':
+    case 'c++':
+      return 'cpp';
+    case 'javascript':
+    case 'js':
+      return 'javascript';
+    case 'typescript':
+    case 'ts':
+      return 'typescript';
+    case 'c':
+      return 'c';
+    case 'go':
+      return 'go';
+    case 'rust':
+      return 'rust';
+    case 'swift':
+      return 'swift';
+    case 'kotlin':
+      return 'kotlin';
+    case 'ruby':
+      return 'ruby';
+    case 'php':
+      return 'php';
+    default:
+      return 'plaintext';
   }
 }
 
@@ -349,9 +500,12 @@ class _OverviewTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Access the nearest ProblemDetailScreen to read the problem
-    final element = context.findAncestorWidgetOfExactType<ProblemDetailScreen>();
+    final element = context
+        .findAncestorWidgetOfExactType<ProblemDetailScreen>();
     final problem = element!.problem;
-    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final contentAsync = ref.watch(
+      ProblemDetailScreen.problemContentProvider(problem.id),
+    );
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -363,7 +517,8 @@ class _OverviewTab extends ConsumerWidget {
               const SizedBox(width: 12),
               _timeChipStatic('${problem.estimatedMinutes} min'),
               const Spacer(),
-              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+              if (problem.premium)
+                const Icon(Icons.lock, color: Colors.black45),
             ],
           ),
           const SizedBox(height: 16),
@@ -382,14 +537,22 @@ class _OverviewTab extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Problem Statement', style: Theme.of(context).textTheme.titleMedium),
+                            Text(
+                              'Problem Statement',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                             const SizedBox(height: 8),
-                            Text(content.statement.isNotEmpty ? content.statement : 'No statement provided.'),
+                            Text(
+                              content.statement.isNotEmpty
+                                  ? content.statement
+                                  : 'No statement provided.',
+                            ),
                           ],
                         ),
                       ),
                     ),
-                    if (content.inputFormat.isNotEmpty || content.outputFormat.isNotEmpty) ...[
+                    if (content.inputFormat.isNotEmpty ||
+                        content.outputFormat.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       Card(
                         elevation: 1,
@@ -398,18 +561,35 @@ class _OverviewTab extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Input/Output', style: Theme.of(context).textTheme.titleMedium),
+                              Text(
+                                'Input/Output',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                               const SizedBox(height: 8),
                               if (content.inputFormat.isNotEmpty) ...[
-                                const Text('Input Format', style: TextStyle(fontWeight: FontWeight.w600)),
+                                const Text(
+                                  'Input Format',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
                                 const SizedBox(height: 4),
-                                Text(content.inputFormat),
+                                codeBlock(
+                                  context,
+                                  content.inputFormat,
+                                  language: 'plaintext',
+                                ),
                               ],
                               if (content.outputFormat.isNotEmpty) ...[
                                 const SizedBox(height: 8),
-                                const Text('Output Format', style: TextStyle(fontWeight: FontWeight.w600)),
+                                const Text(
+                                  'Output Format',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
                                 const SizedBox(height: 4),
-                                Text(content.outputFormat),
+                                codeBlock(
+                                  context,
+                                  content.outputFormat,
+                                  language: 'plaintext',
+                                ),
                               ],
                             ],
                           ),
@@ -425,18 +605,30 @@ class _OverviewTab extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Constraints', style: Theme.of(context).textTheme.titleMedium),
+                              Text(
+                                'Constraints',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                               const SizedBox(height: 8),
                               for (final c in content.constraints) ...[
-                                Row(children: [
-                                  const Text('• '),
-                                  Expanded(child: Text(c.name.isNotEmpty ? '${c.name}: ${c.value}' : c.value)),
-                                ]),
-                                if (c.explanation.isNotEmpty) Padding(
-                                  padding: const EdgeInsets.only(left: 18.0, top: 4),
-                                  child: Text(c.explanation, style: const TextStyle(color: Colors.black54)),
+                                codeBlock(
+                                  context,
+                                  c.name.isNotEmpty
+                                      ? '${c.name}: ${c.value}'
+                                      : c.value,
+                                  language: 'plaintext',
                                 ),
-                                const SizedBox(height: 6),
+                                if (c.explanation.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(
+                                      c.explanation,
+                                      style: const TextStyle(
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                const SizedBox(height: 8),
                               ],
                             ],
                           ),
@@ -452,15 +644,52 @@ class _OverviewTab extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Examples', style: Theme.of(context).textTheme.titleMedium),
+                              Text(
+                                'Examples',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                               const SizedBox(height: 8),
                               for (final t in content.testCases) ...[
-                                if (t.name.isNotEmpty) Text(t.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                if (t.name.isNotEmpty)
+                                  Text(
+                                    t.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 const SizedBox(height: 4),
-                                if (t.inputJson != null && t.inputJson!.isNotEmpty)
-                                  Text('Input: ${t.inputJson}'),
-                                if (t.output.isNotEmpty) Text('Output: ${t.output}'),
-                                if (t.explanation != null && t.explanation!.isNotEmpty)
+                                if (t.inputJson != null &&
+                                    t.inputJson!.isNotEmpty) ...[
+                                  const Text(
+                                    'Input:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  codeBlock(
+                                    context,
+                                    t.inputJson!,
+                                    language: 'json',
+                                  ),
+                                ],
+                                if (t.output.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Output:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  codeBlock(
+                                    context,
+                                    t.output,
+                                    language: 'json',
+                                  ),
+                                ],
+                                if (t.explanation != null &&
+                                    t.explanation!.isNotEmpty)
                                   Text('Explanation: ${t.explanation}'),
                                 const SizedBox(height: 12),
                               ],
@@ -473,7 +702,8 @@ class _OverviewTab extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => const Center(child: Text('Failed to load content.')),
+              error: (e, st) =>
+                  const Center(child: Text('Failed to load content.')),
             ),
           ),
         ],
@@ -499,7 +729,11 @@ class _OverviewTab extends ConsumerWidget {
         label = 'Hard';
         break;
     }
-    return Chip(label: Text(label), backgroundColor: c.withOpacity(0.15), side: BorderSide(color: c));
+    return Chip(
+      label: Text(label),
+      backgroundColor: c.withOpacity(0.15),
+      side: BorderSide(color: c),
+    );
   }
 
   Widget _timeChipStatic(String label) {
@@ -517,9 +751,12 @@ class _BruteForceTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
+    final screen = context
+        .findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
     final problem = screen.problem;
-    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final contentAsync = ref.watch(
+      ProblemDetailScreen.problemContentProvider(problem.id),
+    );
     final defaultLangAsync = ref.watch(defaultLanguageProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -532,18 +769,32 @@ class _BruteForceTab extends ConsumerWidget {
               const SizedBox(width: 12),
               screen._timeChip('${problem.estimatedMinutes} min'),
               const Spacer(),
-              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+              if (problem.premium)
+                const Icon(Icons.lock, color: Colors.black45),
             ],
           ),
           const SizedBox(height: 16),
           contentAsync.when(
             data: (content) {
               if (content == null) return const Text('Content not available.');
-              final list = content.approaches.where((a) => a.key == 'brute_force').toList();
-              if (list.isEmpty) return const Text('Brute Force approach not available.');
+              final list = content.approaches
+                  .where((a) => a.key == 'brute_force')
+                  .toList();
+              if (list.isEmpty)
+                return const Text('Brute Force approach not available.');
               final a = list.first;
-              final selectedLang = defaultLangAsync.hasValue ? defaultLangAsync.value : null;
-              return Column(children: [screen._approachCard(context, a, preferredLanguage: selectedLang)]);
+              final selectedLang = defaultLangAsync.hasValue
+                  ? defaultLangAsync.value
+                  : null;
+              return Column(
+                children: [
+                  screen._approachCard(
+                    context,
+                    a,
+                    preferredLanguage: selectedLang,
+                  ),
+                ],
+              );
             },
             loading: () => const LinearProgressIndicator(),
             error: (e, st) => const Text('Failed to load approach.'),
@@ -563,9 +814,12 @@ class _OptimizedTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
+    final screen = context
+        .findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
     final problem = screen.problem;
-    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final contentAsync = ref.watch(
+      ProblemDetailScreen.problemContentProvider(problem.id),
+    );
     final defaultLangAsync = ref.watch(defaultLanguageProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -578,18 +832,32 @@ class _OptimizedTab extends ConsumerWidget {
               const SizedBox(width: 12),
               screen._timeChip('${problem.estimatedMinutes} min'),
               const Spacer(),
-              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+              if (problem.premium)
+                const Icon(Icons.lock, color: Colors.black45),
             ],
           ),
           const SizedBox(height: 16),
           contentAsync.when(
             data: (content) {
               if (content == null) return const Text('Content not available.');
-              final list = content.approaches.where((a) => a.key == 'optimized').toList();
-              if (list.isEmpty) return const Text('Optimized approach not available.');
+              final list = content.approaches
+                  .where((a) => a.key == 'optimized')
+                  .toList();
+              if (list.isEmpty)
+                return const Text('Optimized approach not available.');
               final a = list.first;
-              final selectedLang = defaultLangAsync.hasValue ? defaultLangAsync.value : null;
-              return Column(children: [screen._approachCard(context, a, preferredLanguage: selectedLang)]);
+              final selectedLang = defaultLangAsync.hasValue
+                  ? defaultLangAsync.value
+                  : null;
+              return Column(
+                children: [
+                  screen._approachCard(
+                    context,
+                    a,
+                    preferredLanguage: selectedLang,
+                  ),
+                ],
+              );
             },
             loading: () => const LinearProgressIndicator(),
             error: (e, st) => const Text('Failed to load approach.'),
@@ -609,9 +877,12 @@ class _OptimalTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
+    final screen = context
+        .findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
     final problem = screen.problem;
-    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final contentAsync = ref.watch(
+      ProblemDetailScreen.problemContentProvider(problem.id),
+    );
     final defaultLangAsync = ref.watch(defaultLanguageProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -624,18 +895,32 @@ class _OptimalTab extends ConsumerWidget {
               const SizedBox(width: 12),
               screen._timeChip('${problem.estimatedMinutes} min'),
               const Spacer(),
-              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+              if (problem.premium)
+                const Icon(Icons.lock, color: Colors.black45),
             ],
           ),
           const SizedBox(height: 16),
           contentAsync.when(
             data: (content) {
               if (content == null) return const Text('Content not available.');
-              final list = content.approaches.where((a) => a.key == 'optimal').toList();
-              if (list.isEmpty) return const Text('Optimal approach not available.');
+              final list = content.approaches
+                  .where((a) => a.key == 'optimal')
+                  .toList();
+              if (list.isEmpty)
+                return const Text('Optimal approach not available.');
               final a = list.first;
-              final selectedLang = defaultLangAsync.hasValue ? defaultLangAsync.value : null;
-              return Column(children: [screen._approachCard(context, a, preferredLanguage: selectedLang)]);
+              final selectedLang = defaultLangAsync.hasValue
+                  ? defaultLangAsync.value
+                  : null;
+              return Column(
+                children: [
+                  screen._approachCard(
+                    context,
+                    a,
+                    preferredLanguage: selectedLang,
+                  ),
+                ],
+              );
             },
             loading: () => const LinearProgressIndicator(),
             error: (e, st) => const Text('Failed to load approach.'),
@@ -655,9 +940,12 @@ class _SummaryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screen = context.findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
+    final screen = context
+        .findAncestorWidgetOfExactType<ProblemDetailScreen>()!;
     final problem = screen.problem;
-    final contentAsync = ref.watch(ProblemDetailScreen.problemContentProvider(problem.id));
+    final contentAsync = ref.watch(
+      ProblemDetailScreen.problemContentProvider(problem.id),
+    );
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -669,7 +957,8 @@ class _SummaryTab extends ConsumerWidget {
               const SizedBox(width: 12),
               screen._timeChip('${problem.estimatedMinutes} min'),
               const Spacer(),
-              if (problem.premium) const Icon(Icons.lock, color: Colors.black45),
+              if (problem.premium)
+                const Icon(Icons.lock, color: Colors.black45),
             ],
           ),
           const SizedBox(height: 16),
@@ -687,17 +976,37 @@ class _SummaryTab extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Approach Comparison', style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        'Approach Comparison',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 12),
                       for (final r in table.rows) ...[
-                        Row(children: [
-                          Expanded(child: Text(r.approach, style: const TextStyle(fontWeight: FontWeight.w600))),
-                          Expanded(child: Text('Time: ${r.time}')),
-                          Expanded(child: Text('Space: ${r.space}')),
-                        ]),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                r.approach,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Text('Time: ${r.time}')),
+                            Expanded(child: Text('Space: ${r.space}')),
+                          ],
+                        ),
                         const SizedBox(height: 4),
-                        if (r.pros.isNotEmpty) Text('Pros: ${r.pros.join(', ')}', style: const TextStyle(color: Colors.black54)),
-                        if (r.cons.isNotEmpty) Text('Cons: ${r.cons.join(', ')}', style: const TextStyle(color: Colors.black54)),
+                        if (r.pros.isNotEmpty)
+                          Text(
+                            'Pros: ${r.pros.join(', ')}',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                        if (r.cons.isNotEmpty)
+                          Text(
+                            'Cons: ${r.cons.join(', ')}',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
                         const Divider(height: 16),
                       ],
                     ],

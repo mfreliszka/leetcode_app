@@ -59,55 +59,16 @@
       "cons": ["Slow on large inputs"],
       "implementations": {
         "python": {
-          "code": [
-            "```python",
-            "# REPLACE WITH PYTHON CODE",
-            "# CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "# class Solution:",
-            "#     def solve(...):",
-            "#         ...",
-            "```"
-          ]
+          "code": "# REPLACE\n# def solve(...):\n#     ..."
         },
         "javascript": {
-          "code": [
-            "```javascript",
-            "// REPLACE WITH JAVASCRIPT CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// class Solution {",
-            "//     solve(...) {",
-            "//         ...",
-            "//     }",
-            "// }",
-            "```"
-          ]
+          "code": "// REPLACE\n// function solve(...) {\n//   ...\n// }"
         },
         "java": {
-          "code": [
-            "```java",
-            "// REPLACE WITH JAVA CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// public class Solution {",
-            "//     public TYPE solve(...) {",
-            "//         ...",
-            "//     }",
-            "// }",
-            "```"
-          ]
+          "code": "// REPLACE\n// class Solution {\n//   public TYPE solve(...) {\n//     ...\n//   }\n// }"
         },
         "cpp": {
-          "code": [
-            "```cpp",
-            "// REPLACE WITH CPP CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// class Solution {",
-            "// public:",
-            "//     TYPE solve(...) {",
-            "//         ...",
-            "//     }",
-            "// };",
-            "```"
-          ]
+          "code": "// REPLACE\n// TYPE solve(...) {\n//   ...\n// }"
         }
       }
     },
@@ -125,57 +86,10 @@
       "pros": ["Better time complexity"],
       "cons": ["More complex to implement"],
       "implementations": {
-        "python": {
-          "code": [
-            "```python",
-            "# REPLACE WITH PYTHON CODE",
-            "# CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "# class Solution:",
-            "#     def solve(...):",
-            "#         ...",
-            "```"
-          ]
-        },
-        "javascript": {
-          "code": [
-            "```javascript",
-            "// REPLACE WITH JAVASCRIPT CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// class Solution {",
-            "//     solve(...) {",
-            "//         ...",
-            "//     }",
-            "// }",
-            "```"
-          ]
-        },
-        "java": {
-          "code": [
-            "```java",
-            "// REPLACE WITH JAVA CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// public class Solution {",
-            "//     public TYPE solve(...) {",
-            "//         ...",
-            "//     }",
-            "// }",
-            "```"
-          ]
-        },
-        "cpp": {
-          "code": [
-            "```cpp",
-            "// REPLACE WITH CPP CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// class Solution {",
-            "// public:",
-            "//     TYPE solve(...) {",
-            "//         ...",
-            "//     }",
-            "// };",
-            "```"
-          ]
-        }
+        "python": { "code": "# REPLACE" },
+        "javascript": { "code": "// REPLACE" },
+        "java": { "code": "// REPLACE" },
+        "cpp": { "code": "// REPLACE" }
       }
     },
     {
@@ -199,67 +113,37 @@
       "pros": ["Fastest in practice", "Optimal bounds"],
       "cons": ["Requires recognizing key insight"],
       "implementations": {
-        "python": {
-          "code": [
-            "```python",
-            "# REPLACE WITH PYTHON CODE",
-            "# CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "# class Solution:",
-            "#     def solve(...):",
-            "#         ...",
-            "```"
-          ]
-        },
-        "javascript": {
-          "code": [
-            "```javascript",
-            "// REPLACE WITH JAVASCRIPT CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// class Solution {",
-            "//     solve(...) {",
-            "//         ...",
-            "//     }",
-            "// }",
-            "```"
-          ]
-        },
-        "java": {
-          "code": [
-            "```java",
-            "// REPLACE WITH JAVA CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// public class Solution {",
-            "//     public TYPE solve(...) {",
-            "//         ...",
-            "//     }",
-            "// }",
-            "```"
-          ]
-        },
-        "cpp": {
-          "code": [
-            "```cpp",
-            "// REPLACE WITH CPP CODE",
-            "// CONTAINING MANY DESCRIPTIVE COMMENTS",
-            "// class Solution {",
-            "// public:",
-            "//     TYPE solve(...) {",
-            "//         ...",
-            "//     }",
-            "// };",
-            "```"
-          ]
-        }
+        "python": { "code": "# REPLACE" },
+        "javascript": { "code": "// REPLACE" },
+        "java": { "code": "// REPLACE" },
+        "cpp": { "code": "// REPLACE" }
       }
     }
   ],
-  "comparison_table": [
-    "| Approach                                            | Time       | Space      | Pros                              | Cons                           |",
-    "|-----------------------------------------------------|------------|------------|-----------------------------------|--------------------------------|",
-    "| Brute Force                                         | O(REPLACE) | O(REPLACE) | Simple to understand and code     | Slower due to sorting overhead |",
-    "| REPLACE WITH OPTIMIZED SOLUTION CODING PATTERN NAME | O(REPLACE) | O(REPLACE) | Linear time, flexible for any     | Hash map overhead, two maps    |",
-    "|                                                     |            |            | character set                     | needed for comparison          |",
-    "| REPLACE WITH OPTIMAL SOLUTION CODING PATTERN NAME   | O(REPLACE) | O(REPLACE) | Optimal time and space, fastest   | Only works for limited charset |",
-    "|                                                     |            |            | in practice, single pass possible | (lowercase English here)       |"
-  ]
+  "comparison_table": {
+    "columns": ["Approach", "Time", "Space", "Pros", "Cons"],
+    "rows": [
+      {
+        "approach": "Brute Force",
+        "time": "O(REPLACE)",
+        "space": "O(REPLACE)",
+        "pros": ["Simple to understand and code"],
+        "cons": ["Slower due to exhaustive search"]
+      },
+      {
+        "approach": "Optimized",
+        "time": "O(REPLACE)",
+        "space": "O(REPLACE)",
+        "pros": ["Linear time on average", "Handles typical constraints well"],
+        "cons": ["Extra memory or preprocessing"]
+      },
+      {
+        "approach": "Optimal",
+        "time": "O(REPLACE)",
+        "space": "O(REPLACE)",
+        "pros": ["Optimal time and space", "Single pass possible"],
+        "cons": ["Works only under specific constraints/trick"]
+      }
+    ]
+  }
 }

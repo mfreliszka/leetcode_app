@@ -30,3 +30,27 @@ ThemeData buildAppTheme() {
     ),
   );
 }
+
+ThemeData buildAppDarkTheme() {
+  final colorScheme = ColorScheme.fromSeed(
+    seedColor: kAccentColor,
+    brightness: Brightness.dark,
+  );
+
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: colorScheme,
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+    ),
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    textTheme: const TextTheme(
+      titleLarge: TextStyle(fontWeight: FontWeight.bold),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: kAccentColor,
+      unselectedItemColor: Colors.white70,
+      type: BottomNavigationBarType.fixed,
+    ),
+  );
+}

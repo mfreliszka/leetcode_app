@@ -52,17 +52,24 @@ class SeedService {
     List<CategoryIsar> categories = [];
     List<ProblemIsar> problems = [];
 
-    final dirPath = await _resolveProblemsDir();
-    if (dirPath != null) {
-      debugPrint('[SeedService] Using problems dir: $dirPath');
-      problems = await _loadProblemsFromDir(dirPath);
-      debugPrint('[SeedService] Loaded ${problems.length} problems from directory');
-      categories = _deriveCategoriesFromProblems(problems);
-      debugPrint('[SeedService] Derived ${categories.length} categories from problems');
+    // Load categories from dedicated categories.json
+    final categoriesFile = await _resolveCategoriesFile();
+    if (categoriesFile != null) {
+      debugPrint('[SeedService] Using categories file: $categoriesFile');
+      categories = await _loadCategoriesFromFile(categoriesFile);
+      debugPrint('[SeedService] Loaded ${categories.length} categories from file');
     } else {
-      // No directory found; do not seed from assets. Leave DB empty.
-      problems = [];
-      categories = [];
+      debugPrint('[SeedService] No categories file found; categories will be empty');
+    }
+
+    // Load problems from problems directory
+    final problemsDir = await _resolveProblemsDir();
+    if (problemsDir != null) {
+      debugPrint('[SeedService] Using problems dir: $problemsDir');
+      problems = await _loadProblemsFromDir(problemsDir);
+      debugPrint('[SeedService] Loaded ${problems.length} problems from directory');
+    } else {
+      debugPrint('[SeedService] No problems directory found; problems will be empty');
     }
 
     await isar.writeTxn(() async {
@@ -81,13 +88,38 @@ class SeedService {
     await prefs.setBool(_seedVersionKey, true);
   }
 
+  // Resolve the categories file to use for seeding.
+  // Priority:
+  // 1) Use DATA_PROBLEMS_DIR/categories/categories.json if base directory provided
+  // 2) Use default ../data/categories/categories.json relative to cwd
+  static Future<String?> _resolveCategoriesFile() async {
+    if (_dataProblemsDir.isNotEmpty) {
+      final envFile = File(
+        _joinPath(_dataProblemsDir, ['categories', 'categories.json']),
+      );
+      if (await envFile.exists()) {
+        return envFile.path;
+      }
+    }
+    try {
+      final cwd = Directory.current.path;
+      final defaultFile = File(
+        _joinPath(cwd, ['..', 'data', 'categories', 'categories.json']),
+      );
+      if (await defaultFile.exists()) {
+        return defaultFile.path;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // Resolve the problems directory to use for seeding.
   // Priority:
-  // 1) Use DATA_PROBLEMS_DIR if provided and exists
-  // 2) Use a sensible default: ../data/problems relative to current working directory
+  // 1) Use DATA_PROBLEMS_DIR/problems if base directory provided
+  // 2) Use default ../data/problems relative to cwd
   static Future<String?> _resolveProblemsDir() async {
     if (_dataProblemsDir.isNotEmpty) {
-      final envDir = Directory(_dataProblemsDir);
+      final envDir = Directory(_joinPath(_dataProblemsDir, ['problems']));
       if (await envDir.exists()) {
         return envDir.path;
       }
@@ -95,7 +127,7 @@ class SeedService {
     try {
       final cwd = Directory.current.path;
       final defaultDir = Directory(
-        '$cwd${Platform.pathSeparator}..${Platform.pathSeparator}data${Platform.pathSeparator}problems',
+        _joinPath(cwd, ['..', 'data', 'problems']),
       );
       if (await defaultDir.exists()) {
         return defaultDir.path;
@@ -140,21 +172,31 @@ class SeedService {
     return problems;
   }
 
-  static List<CategoryIsar> _deriveCategoriesFromProblems(List<ProblemIsar> problems) {
-    final map = <int, CategoryIsar>{};
-    for (final p in problems) {
-      if (!map.containsKey(p.categoryId)) {
-        map[p.categoryId] = CategoryIsar(
-          id: p.categoryId,
-          name: p.categoryName.isNotEmpty ? p.categoryName : 'Category ${p.categoryId}',
-          premium: false,
-          description: '',
-        );
-      }
+  static Future<List<CategoryIsar>> _loadCategoriesFromFile(String path) async {
+    final file = File(path);
+    if (!await file.exists()) return [];
+    final jsonStr = await file.readAsString();
+    final list = json.decode(jsonStr) as List<dynamic>;
+    final categories = <CategoryIsar>[];
+    for (final item in list) {
+      final m = item as Map<String, dynamic>;
+      categories.add(
+        CategoryIsar(
+          id: m['id'] as int,
+          name: (m['name'] as String?) ?? '',
+          premium: (m['premium'] == true),
+          description: (m['description'] as String?) ?? '',
+        ),
+      );
     }
-    final cats = map.values.toList();
-    cats.sort((a, b) => a.id.compareTo(b.id));
-    return cats;
+    categories.sort((a, b) => a.id.compareTo(b.id));
+    return categories;
+  }
+
+  static String _joinPath(String base, List<String> segments) {
+    final sep = Platform.pathSeparator;
+    final cleaned = segments.join(sep);
+    return base.endsWith(sep) ? '$base$cleaned' : '$base$sep$cleaned';
   }
 
   // No asset-based loading; problems must come from external directory JSON files.

@@ -8,6 +8,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final defaultLangAsync = ref.watch(defaultLanguageProvider);
+    final themeNotifier = ref.watch(themeModeNotifierProvider);
     const languages = ['python', 'javascript', 'java', 'cpp'];
 
     return Scaffold(
@@ -18,6 +19,34 @@ class SettingsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Preferences', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Appearance'),
+                    const SizedBox(height: 8),
+                    ValueListenableBuilder<ThemeMode>(
+                      valueListenable: themeNotifier,
+                      builder: (context, themeMode, _) {
+                        return SwitchListTile(
+                          title: const Text('Dark mode'),
+                          value: themeMode == ThemeMode.dark,
+                          onChanged: (enabled) async {
+                            final next = enabled ? ThemeMode.dark : ThemeMode.light;
+                            themeNotifier.value = next;
+                            await ref.read(settingsRepoProvider).setThemeMode(next);
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             Card(
               elevation: 1,
