@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'app/router.dart';
-import 'app/theme.dart';
-import 'core/services/seed_service.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'app.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await SeedService.seedIfNeeded();
-  runApp(const ProviderScope(child: LeetcodeMasterApp()));
-}
 
-class LeetcodeMasterApp extends StatelessWidget {
-  const LeetcodeMasterApp({super.key});
+  // Set system UI overlay style for dark mode
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF3A3A3A),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = buildAppTheme();
-    return MaterialApp.router(
-      title: 'Leetcode Master',
-      theme: theme,
-      routerConfig: appRouter,
-    );
-  }
+  // Initialize Hive for local caching
+  await Hive.initFlutter();
+
+  // TODO: Initialize Firebase when configured
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
+
+  runApp(
+    const ProviderScope(
+      child: LeetCodeMasterApp(),
+    ),
+  );
 }
