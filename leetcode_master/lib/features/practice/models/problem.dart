@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../../components/lcm_badge.dart';
+import 'approach.dart';
 
 part 'problem.g.dart';
 
@@ -13,6 +14,7 @@ class Problem {
     this.isSolved = false,
     this.isPremium = false,
     this.order = 0,
+    this.questionSetIds = const [],
   });
 
   final String id;
@@ -23,6 +25,9 @@ class Problem {
   final bool isSolved;
   final bool isPremium;
   final int order;
+
+  /// Foreign keys to QuestionSet IDs (e.g., ["blind_75", "neetcode_150"])
+  final List<String> questionSetIds;
 
   factory Problem.fromJson(Map<String, dynamic> json) =>
       _$ProblemFromJson(json);

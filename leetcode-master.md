@@ -28,7 +28,7 @@ Build a professional, dark-mode mobile app to master algorithmic patterns for te
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| **Mobile** | Flutter 3.x | Cross-platform, performant |
+| **Mobile** | Flutter 3.38.9 | Cross-platform, performant |
 | **State** | flutter_riverpod | Reactive, DI built-in |
 | **Auth** | firebase_auth + firebase_ui_auth | OAuth, email, anonymous |
 | **Database** | Cloud Firestore | Realtime sync, offline support |
@@ -91,7 +91,8 @@ leetcode_master/
 │   ├── problems.py                  # GET /problems/{category}
 │   └── solutions.py                 # GET /solutions/{problem}
 ├── firestore/
-│   └── seed_data.json               # Initial content
+│   ├── seed_data.json               # Initial content
+│   └── question_sets.json           # Set definitions (Blind 75, etc.)
 ├── pubspec.yaml
 └── firebase.json
 ```
@@ -131,10 +132,12 @@ leetcode_master/
   - **Verify:** Firebase console shows project, flutterfire activated
 
 - [ ] **T5: Firestore Data Model**
-  - Define collections: `categories`, `problems`, `approaches`, `users`
+  - Define collections: `categories`, `problems`, `approaches`, `users`, `question_sets`
+  - `question_sets` schema: `{ id: string, name: string, description: string }`
+  - `problems` schema: Add `question_set_ids: string[]` (Foreign Keys to `question_sets`)
   - Create `seed_data.json` with 3 categories, 5 problems each
   - **Agent:** `mobile-developer` | **Skill:** `database-design`
-  - **Verify:** Firestore console shows seeded data
+  - **Verify:** Firestore console shows seeded data and Sets collection
 
 - [ ] **T6: Cloud Run Functions - Categories API**
   - `GET /categories` → returns list with `is_premium` flag
@@ -172,10 +175,13 @@ leetcode_master/
 
 - [x] **T11: Problem List Screen** (with mock data)
   - Fetch problems for selected category
+  - **Filter UI:** Popup Menu in AppBar (right side) to filter by Question Set (e.g., "Blind 75") or "All"
+  - **Filter Logic:** Local intersection (Problem's Category == Selected AND Problem's Set IDs contains Filter)
+  - **Visuals:** Show active filter indicator button/icon
   - Group by difficulty (Easy/Med/Hard badges)
   - Show checkmark for solved problems
   - **Agent:** `mobile-developer` | **Skill:** `mobile-design`
-  - **Verify:** ✅ Problems grouped correctly, badges colored
+  - **Verify:** ✅ Problems grouped correctly, filter limits list, active filter shown
 
 - [x] **T12: Problem Workspace Screen** (with mock data)
   - Display problem statement + examples + constraints
