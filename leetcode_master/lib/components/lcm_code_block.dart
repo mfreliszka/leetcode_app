@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_code_editor/flutter_code_editor.dart';
-import 'package:highlight/languages/python.dart';
-import 'package:highlight/languages/java.dart';
-import 'package:highlight/languages/cpp.dart';
-import 'package:highlight/languages/javascript.dart';
 import '../config/constants.dart';
 
 /// Supported programming languages
@@ -31,14 +26,12 @@ class LCMCodeBlock extends StatefulWidget {
 
 class _LCMCodeBlockState extends State<LCMCodeBlock> {
   late CodeLanguage _selectedLanguage;
-  late CodeController _controller;
   bool _copied = false;
 
   @override
   void initState() {
     super.initState();
     _selectedLanguage = widget.language;
-    _initController();
   }
 
   @override
@@ -47,28 +40,6 @@ class _LCMCodeBlockState extends State<LCMCodeBlock> {
     if (oldWidget.code != widget.code ||
         oldWidget.language != widget.language) {
       _selectedLanguage = widget.language;
-      _initController();
-    }
-  }
-
-  void _initController() {
-    final currentCode = widget.code[_selectedLanguage] ?? '';
-    _controller = CodeController(
-      text: currentCode,
-      language: _getLanguageMode(),
-    );
-  }
-
-  dynamic _getLanguageMode() {
-    switch (_selectedLanguage) {
-      case CodeLanguage.python:
-        return python;
-      case CodeLanguage.java:
-        return java;
-      case CodeLanguage.cpp:
-        return cpp;
-      case CodeLanguage.javascript:
-        return javascript;
     }
   }
 
@@ -89,7 +60,6 @@ class _LCMCodeBlockState extends State<LCMCodeBlock> {
     if (lang == null) return;
     setState(() {
       _selectedLanguage = lang;
-      _initController();
     });
     widget.onLanguageChanged?.call(lang);
   }
@@ -102,12 +72,6 @@ class _LCMCodeBlockState extends State<LCMCodeBlock> {
     if (mounted) {
       setState(() => _copied = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override
@@ -159,7 +123,9 @@ class _LCMCodeBlockState extends State<LCMCodeBlock> {
                   icon: Icon(
                     _copied ? Icons.check : Icons.copy,
                     size: 18,
-                    color: _copied ? LCMColors.success : LCMColors.textSecondary,
+                    color: _copied
+                        ? LCMColors.success
+                        : LCMColors.textSecondary,
                   ),
                   tooltip: 'Copy code',
                   splashRadius: 20,
@@ -168,36 +134,19 @@ class _LCMCodeBlockState extends State<LCMCodeBlock> {
             ),
           ),
 
-          // Code editor (read-only)
-          Padding(
+          // Code text (read-only)
+          Container(
             padding: const EdgeInsets.all(LCMDimensions.paddingSM),
-            child: CodeTheme(
-              data: CodeThemeData(
-                styles: _dracula,
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: CodeField(
-                  controller: _controller,
-                  textStyle: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                  readOnly: true,
-                  minLines: 1,
-                  maxLines: null,
-                  wrap: false,
-                  background: LCMColors.codeBackground,
-                  gutterStyle: const GutterStyle(
-                    showLineNumbers: true,
-                    textStyle: TextStyle(
-                      color: LCMColors.textMuted,
-                      fontSize: 12,
-                      fontFamily: 'JetBrainsMono',
-                    ),
-                    background: LCMColors.codeBackground,
-                  ),
+            width: double.infinity,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SelectableText(
+                widget.code[_selectedLanguage] ?? '',
+                style: const TextStyle(
+                  fontFamily: 'JetBrainsMono',
+                  fontSize: 13,
+                  height: 1.5,
+                  color: LCMColors.textPrimary,
                 ),
               ),
             ),
@@ -207,35 +156,3 @@ class _LCMCodeBlockState extends State<LCMCodeBlock> {
     );
   }
 }
-
-/// Dracula theme colors for code highlighting
-const _dracula = {
-  'root': TextStyle(backgroundColor: LCMColors.codeBackground, color: Color(0xFFF8F8F2)),
-  'keyword': TextStyle(color: Color(0xFFFF79C6)),
-  'selector-tag': TextStyle(color: Color(0xFFFF79C6)),
-  'literal': TextStyle(color: Color(0xFFFF79C6)),
-  'section': TextStyle(color: Color(0xFFFF79C6)),
-  'link': TextStyle(color: Color(0xFFFF79C6)),
-  'subst': TextStyle(color: Color(0xFFF8F8F2)),
-  'string': TextStyle(color: Color(0xFFF1FA8C)),
-  'title': TextStyle(color: Color(0xFF50FA7B)),
-  'name': TextStyle(color: Color(0xFF50FA7B)),
-  'type': TextStyle(color: Color(0xFF8BE9FD)),
-  'attr': TextStyle(color: Color(0xFF8BE9FD)),
-  'symbol': TextStyle(color: Color(0xFF8BE9FD)),
-  'bullet': TextStyle(color: Color(0xFF8BE9FD)),
-  'addition': TextStyle(color: Color(0xFF8BE9FD)),
-  'variable': TextStyle(color: Color(0xFFF8F8F2)),
-  'template-tag': TextStyle(color: Color(0xFFF8F8F2)),
-  'template-variable': TextStyle(color: Color(0xFFF8F8F2)),
-  'comment': TextStyle(color: Color(0xFF6272A4)),
-  'quote': TextStyle(color: Color(0xFF6272A4)),
-  'deletion': TextStyle(color: Color(0xFFFF5555)),
-  'meta': TextStyle(color: Color(0xFFFF79C6)),
-  'doctag': TextStyle(color: Color(0xFF6272A4)),
-  'number': TextStyle(color: Color(0xFFBD93F9)),
-  'built_in': TextStyle(color: Color(0xFF8BE9FD)),
-  'class': TextStyle(color: Color(0xFF8BE9FD)),
-  'function': TextStyle(color: Color(0xFF50FA7B)),
-  'params': TextStyle(color: Color(0xFFFFB86C)),
-};

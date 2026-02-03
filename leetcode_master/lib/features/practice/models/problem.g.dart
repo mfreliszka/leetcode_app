@@ -9,7 +9,7 @@ part of 'problem.dart';
 Problem _$ProblemFromJson(Map<String, dynamic> json) => Problem(
   id: json['id'] as String,
   title: json['title'] as String,
-  categoryId: json['categoryId'] as String,
+  categoryId: json['categoryId'] as String? ?? '',
   difficulty: Problem._difficultyFromJson(json['difficulty'] as String),
   isSolved: json['isSolved'] as bool? ?? false,
   isPremium: json['isPremium'] as bool? ?? false,
