@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
+import 'services/cache_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,14 +21,13 @@ void main() async {
   // Initialize Hive for local caching
   await Hive.initFlutter();
 
+  // Initialize cache service
+  await CacheService.instance.init();
+
   // TODO: Initialize Firebase when configured
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
 
-  runApp(
-    const ProviderScope(
-      child: LeetCodeMasterApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: LeetCodeMasterApp()));
 }

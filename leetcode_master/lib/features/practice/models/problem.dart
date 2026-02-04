@@ -9,7 +9,7 @@ class Problem {
   const Problem({
     required this.id,
     required this.title,
-    required this.categoryId,
+    this.categoryId = '',
     required this.difficulty,
     this.isSolved = false,
     this.isPremium = false,
@@ -100,11 +100,7 @@ class ProblemDetail {
 
 @JsonSerializable()
 class Example {
-  const Example({
-    required this.input,
-    required this.output,
-    this.explanation,
-  });
+  const Example({required this.input, required this.output, this.explanation});
 
   final String input;
   final String output;
